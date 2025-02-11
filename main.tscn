@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://b3585kfpqb5tk"]
+
+[ext_resource type="PackedScene" uid="uid://g44uw65ok3o3" path="res://BuildingGeneration/building.tscn" id="1_pl4yd"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_36xa7"]
+
+[sub_resource type="Sky" id="Sky_yudeg"]
+sky_material = SubResource("ProceduralSkyMaterial_36xa7")
+
+[sub_resource type="Environment" id="Environment_h7qrd"]
+background_mode = 2
+sky = SubResource("Sky_yudeg")
+
+[node name="Main" type="Node3D"]
+
+[node name="Node3D" parent="." instance=ExtResource("1_pl4yd")]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_h7qrd")

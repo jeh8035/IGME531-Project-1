@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://g44uw65ok3o3"]
+
+[ext_resource type="Script" path="res://BuildingGeneration/generate_building.gd" id="1_8tvap"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_l42y3"]
+
+[node name="Building" type="MultiMeshInstance3D"]
+script = ExtResource("1_8tvap")
+mesh = SubResource("BoxMesh_l42y3")
