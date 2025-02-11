@@ -7,3 +7,5 @@
 [node name="Building" type="MultiMeshInstance3D"]
 script = ExtResource("1_8tvap")
 mesh = SubResource("BoxMesh_l42y3")
+bounds = Vector3(10, 50, 10)
+num_blocks = 20

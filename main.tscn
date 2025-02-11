@@ -1,6 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://b3585kfpqb5tk"]
+[gd_scene load_steps=7 format=3 uid="uid://b3585kfpqb5tk"]
 
 [ext_resource type="PackedScene" uid="uid://g44uw65ok3o3" path="res://BuildingGeneration/building.tscn" id="1_pl4yd"]
+[ext_resource type="Script" path="res://addons/freecam_3D/freecam.gd" id="2_ly6js"]
+[ext_resource type="Script" path="res://CityGen/generate_city.gd" id="3_b0fq0"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_36xa7"]
 
@@ -13,10 +15,19 @@ sky = SubResource("Sky_yudeg")
 
 [node name="Main" type="Node3D"]
 
-[node name="Node3D" parent="." instance=ExtResource("1_pl4yd")]
-
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)
+[node name="Building" parent="." instance=ExtResource("1_pl4yd")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_h7qrd")
+
+[node name="Freecam3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 7)
+script = ExtResource("2_ly6js")
+overlay_text = false
+
+[node name="Node3D" type="Node3D" parent="."]
+script = ExtResource("3_b0fq0")
+grid_size_x = 500.0
+grid_size_y = 500.0
+grid_separation_x = 50.0
+grid_separation_y = 50.0
