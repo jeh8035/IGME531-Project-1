@@ -1,6 +1,5 @@
-[gd_scene load_steps=7 format=3 uid="uid://b3585kfpqb5tk"]
+[gd_scene load_steps=6 format=3 uid="uid://b3585kfpqb5tk"]
 
-[ext_resource type="PackedScene" uid="uid://g44uw65ok3o3" path="res://BuildingGeneration/building.tscn" id="1_pl4yd"]
 [ext_resource type="Script" path="res://addons/freecam_3D/freecam.gd" id="2_ly6js"]
 [ext_resource type="Script" path="res://CityGen/load_chunks.gd" id="3_ofmyf"]
 
@@ -15,13 +14,11 @@ sky = SubResource("Sky_yudeg")
 
 [node name="Main" type="Node3D"]
 
-[node name="Building" parent="." instance=ExtResource("1_pl4yd")]
-
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_h7qrd")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
-transform = Transform3D(1, 0, 0, 0, 0.95401, 0.299773, 0, -0.299773, 0.95401, 0, 317, 0)
+transform = Transform3D(0.864599, -0.150624, 0.479354, 0, 0.954011, 0.299773, -0.502462, -0.259184, 0.824837, 0, 317, 0)
 light_energy = 10.0
 shadow_enabled = true
 directional_shadow_mode = 1
@@ -36,4 +33,4 @@ target_speed = 10.0
 [node name="Chunks" type="Node3D" parent="." node_paths=PackedStringArray("player_node")]
 script = ExtResource("3_ofmyf")
 player_node = NodePath("../Freecam3D")
-chunk_size = 500
+chunk_size = 300
