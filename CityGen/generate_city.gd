@@ -1,10 +1,9 @@
 extends Node
 
+@export var building_prefab : Resource = preload("res://BuildingGeneration/building.tscn")
 
-var building_prefab := preload("res://BuildingGeneration/building.tscn")
-
-@export var grid_size_x : float
-@export var grid_size_y : float
+var grid_size_x : float = 100
+var grid_size_y : float = 100
 @export var grid_separation_x : float
 @export var grid_separation_y : float
 

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://xcxftclqo6fh"]
+
+[ext_resource type="Script" path="res://CityGen/generate_city.gd" id="1_xittv"]
+
+[node name="CityGen" type="Node3D"]
+script = ExtResource("1_xittv")
+grid_separation_x = 50.0
+grid_separation_y = 50.0

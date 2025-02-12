@@ -36,7 +36,7 @@ var movement_active := false:
 		display_message("[Movement ON]" if movement_active else "[Movement OFF]")
 
 ## The current maximum speed. Lower or higher it by scrolling the mouse wheel.
-var target_speed := MIN_SPEED
+@export var target_speed := MIN_SPEED
 ## Movement velocity.
 var velocity := Vector3.ZERO
 
@@ -142,4 +142,3 @@ func _add_key_input_action(name: String, key: Key) -> void:
 	
 	InputMap.add_action(name)
 	InputMap.action_add_event(name, ev)
-

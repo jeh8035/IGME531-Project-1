@@ -1,11 +1,10 @@
 [gd_scene load_steps=3 format=3 uid="uid://g44uw65ok3o3"]
 
-[ext_resource type="Script" path="res://BuildingGeneration/generate_building.gd" id="1_8tvap"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_l42y3"]
+[ext_resource type="Script" path="res://BuildingGeneration/building_gen.gd" id="1_4s4mc"]
+[ext_resource type="ArrayMesh" uid="uid://q1pkpu3pees3" path="res://cube.res" id="2_m0ktj"]
 
 [node name="Building" type="MultiMeshInstance3D"]
-script = ExtResource("1_8tvap")
-mesh = SubResource("BoxMesh_l42y3")
-bounds = Vector3(10, 50, 10)
-num_blocks = 20
+script = ExtResource("1_4s4mc")
+mesh = ExtResource("2_m0ktj")
+bounds = Vector3(30, 50, 30)
+num_blocks = 50
