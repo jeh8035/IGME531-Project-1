@@ -1,0 +1,171 @@
+[gd_resource type="VisualShader" load_steps=10 format=3 uid="uid://dob0cry5jgjqr"]
+
+[sub_resource type="VisualShaderNodeVectorDecompose" id="VisualShaderNodeVectorDecompose_h3v5w"]
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_0qeji"]
+size = Vector2(1160, 280)
+expression = "WORLD_NORMAL = (INV_VIEW_MATRIX * vec4(NORMAL.xyz, 0.0)).xyz;"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_ytv4d"]
+size = Vector2(820, 360)
+expression = "samp_out += texture(samp,t_pos.xy) * pn.z;
+samp_out += texture(samp,t_pos.xz) * pn.y;
+samp_out += texture(samp,t_pos.zy * vec2(-1.0,1.0)) * pn.x;"
+
+[sub_resource type="VisualShaderNodeTextureParameterTriplanar" id="VisualShaderNodeTextureParameterTriplanar_gfgdx"]
+parameter_name = "TextureParameterTriplanar"
+
+[sub_resource type="VisualShaderNodeTexture2DParameter" id="VisualShaderNodeTexture2DParameter_4rn05"]
+parameter_name = "Texture2DParameter"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_holw0"]
+size = Vector2(620, 280)
+expression = "output0 = NormalY < 0.2 && (uv.x > 0.40 && uv.x < 0.6 && uv.y > 0.20 && uv.y < 0.8);"
+
+[sub_resource type="VisualShaderNodeFloatConstant" id="VisualShaderNodeFloatConstant_v4f2p"]
+constant = 1.0
+
+[sub_resource type="VisualShaderNodeFloatConstant" id="VisualShaderNodeFloatConstant_abf2q"]
+constant = 0.2
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_fvk6p"]
+size = Vector2(640, 280)
+expression = "pn=pow(abs(NORMAL),vec3(1.0));
+pn/=dot(pn,vec3(1.0));
+t_pos = VERTEX * scale + offset;
+t_pos *= vec3(1.0,-1.0, 1.0);"
+
+[resource]
+code = "shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_lambert, specular_schlick_ggx;
+
+
+// Varyings
+varying vec3 var_pn;
+varying vec3 var_t_pos;
+
+uniform sampler2D Texture2DParameter;
+uniform sampler2D TextureParameterTriplanar;
+
+
+// TextureParameterTriplanar
+	vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
+		vec4 samp = vec4(0.0);
+		samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;
+		samp += texture(p_sampler, p_triplanar_pos.xz) * p_weights.y;
+		samp += texture(p_sampler, p_triplanar_pos.zy * vec2(-1.0, 1.0)) * p_weights.x;
+		return samp;
+	}
+
+	uniform vec3 triplanar_scale = vec3(1.0, 1.0, 1.0);
+	uniform vec3 triplanar_offset;
+	uniform float triplanar_sharpness = 0.5;
+
+	varying vec3 triplanar_power_normal;
+	varying vec3 triplanar_pos;
+
+void vertex() {
+// TextureParameterTriplanar
+	{
+		triplanar_power_normal = pow(abs(NORMAL), vec3(triplanar_sharpness));
+		triplanar_power_normal /= dot(triplanar_power_normal, vec3(1.0));
+		triplanar_pos = VERTEX * triplanar_scale + triplanar_offset;
+		triplanar_pos *= vec3(1.0, -1.0, 1.0);
+	}
+	var_pn = vec3(0.0);
+	var_t_pos = vec3(0.0);
+}
+
+void fragment() {
+	vec4 n_out18p0;
+// Expression:18
+	n_out18p0 = vec4(0.0, 0.0, 0.0, 0.0);
+	{
+		n_out18p0 += texture(Texture2DParameter,t_pos.xy) * pn.z;
+		n_out18p0 += texture(Texture2DParameter,t_pos.xz) * pn.y;
+		n_out18p0 += texture(Texture2DParameter,t_pos.zy * vec2(-1.0,1.0)) * pn.x;
+	}
+
+
+// FloatConstant:8
+	float n_out8p0 = 1.000000;
+
+
+// TextureParameterTriplanar:2
+	vec4 n_out2p0 = triplanar_texture(TextureParameterTriplanar, triplanar_power_normal, triplanar_pos);
+
+
+	vec3 n_out17p0;
+// Expression:17
+	n_out17p0 = vec3(0.0, 0.0, 0.0);
+	{
+		n_out17p0 = (INV_VIEW_MATRIX * vec4(NORMAL.xyz, 0.0)).xyz;
+	}
+
+
+// VectorDecompose:11
+	float n_out11p0 = n_out17p0.x;
+	float n_out11p1 = n_out17p0.y;
+	float n_out11p2 = n_out17p0.z;
+
+
+	bool n_out7p0;
+// Expression:7
+	n_out7p0 = false;
+	{
+		n_out7p0 = n_out11p1 < 0.2 && (vec2(n_out2p0.xy).x > 0.40 && vec2(n_out2p0.xy).x < 0.6 && vec2(n_out2p0.xy).y > 0.20 && vec2(n_out2p0.xy).y < 0.8);
+	}
+
+
+// Output:0
+	ALBEDO = vec3(n_out18p0.xyz);
+	SPECULAR = n_out8p0;
+	EMISSION = vec3(n_out7p0 ? 1.0 : 0.0);
+
+
+}
+"
+graph_offset = Vector2(-425.452, -244.373)
+varyings/pn = "0,4"
+varyings/t_pos = "0,4"
+nodes/vertex/3/node = SubResource("VisualShaderNodeExpression_fvk6p")
+nodes/vertex/3/position = Vector2(-380, -140)
+nodes/vertex/3/size = Vector2(640, 280)
+nodes/vertex/3/input_ports = ""
+nodes/vertex/3/output_ports = ""
+nodes/vertex/3/expression = "pn=pow(abs(NORMAL),vec3(1.0));
+pn/=dot(pn,vec3(1.0));
+t_pos = VERTEX * scale + offset;
+t_pos *= vec3(1.0,-1.0, 1.0);"
+nodes/fragment/0/position = Vector2(1080, 180)
+nodes/fragment/2/node = SubResource("VisualShaderNodeTextureParameterTriplanar_gfgdx")
+nodes/fragment/2/position = Vector2(-500, 80)
+nodes/fragment/7/node = SubResource("VisualShaderNodeExpression_holw0")
+nodes/fragment/7/position = Vector2(340, 640)
+nodes/fragment/7/size = Vector2(620, 280)
+nodes/fragment/7/input_ports = "0,3,uv;1,0,NormalY;"
+nodes/fragment/7/output_ports = "0,6,output0;"
+nodes/fragment/7/expression = "output0 = NormalY < 0.2 && (uv.x > 0.40 && uv.x < 0.6 && uv.y > 0.20 && uv.y < 0.8);"
+nodes/fragment/8/node = SubResource("VisualShaderNodeFloatConstant_v4f2p")
+nodes/fragment/8/position = Vector2(840, 280)
+nodes/fragment/9/node = SubResource("VisualShaderNodeFloatConstant_abf2q")
+nodes/fragment/9/position = Vector2(720, 180)
+nodes/fragment/11/node = SubResource("VisualShaderNodeVectorDecompose_h3v5w")
+nodes/fragment/11/position = Vector2(40, 660)
+nodes/fragment/17/node = SubResource("VisualShaderNodeExpression_0qeji")
+nodes/fragment/17/position = Vector2(-1340, 640)
+nodes/fragment/17/size = Vector2(1160, 280)
+nodes/fragment/17/input_ports = ""
+nodes/fragment/17/output_ports = "0,4,WORLD_NORMAL;"
+nodes/fragment/17/expression = "WORLD_NORMAL = (INV_VIEW_MATRIX * vec4(NORMAL.xyz, 0.0)).xyz;"
+nodes/fragment/18/node = SubResource("VisualShaderNodeExpression_ytv4d")
+nodes/fragment/18/position = Vector2(-120, -200)
+nodes/fragment/18/size = Vector2(820, 360)
+nodes/fragment/18/input_ports = "0,8,samp;"
+nodes/fragment/18/output_ports = "0,5,samp_out;"
+nodes/fragment/18/expression = "samp_out += texture(samp,t_pos.xy) * pn.z;
+samp_out += texture(samp,t_pos.xz) * pn.y;
+samp_out += texture(samp,t_pos.zy * vec2(-1.0,1.0)) * pn.x;"
+nodes/fragment/20/node = SubResource("VisualShaderNodeTexture2DParameter_4rn05")
+nodes/fragment/20/position = Vector2(-500, -360)
+nodes/fragment/connections = PackedInt32Array(8, 0, 0, 4, 11, 1, 7, 1, 17, 0, 11, 0, 2, 0, 7, 0, 7, 0, 0, 5, 20, 0, 18, 0, 18, 0, 0, 0)

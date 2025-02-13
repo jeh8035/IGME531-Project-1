@@ -1,7 +1,9 @@
+class_name BuildingGenerator
+
 extends MultiMeshInstance3D
 
 @export var mesh : Mesh
-@export var bounds : Vector3
+var bounds : Vector3
 @export var num_blocks : int	
 
 var data : PackedFloat32Array
@@ -23,10 +25,20 @@ func finish() -> void:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	var type : int = randi_range(0,1)
+	var type : int = randi_range(0,2)
 	
 	match type:
 		0:	# Random
+			add_block(
+				bounds.x/2,
+				0,
+				bounds.z/2,
+				Vector3(
+					bounds.x,
+					1,
+					bounds.z
+				)
+			)
 			for i in range(num_blocks):
 				var y_val = randf_range(0, bounds.y)
 				add_block(
@@ -46,9 +58,20 @@ func _ready() -> void:
 					(bounds.y/num_blocks) * i,
 					bounds.z/2,
 					Vector3(
-						bounds.x/i,
+						bounds.x/sqrt(i),
 						(bounds.y/num_blocks),
-						bounds.z/i		
+						bounds.z/sqrt(i)
 					)
 				)
+		2:	# Cube
+			add_block(
+				bounds.x/2,
+				0,
+				bounds.z/2,
+				Vector3(
+					bounds.x,
+					bounds.y,
+					bounds.z
+				)
+			)
 	finish()

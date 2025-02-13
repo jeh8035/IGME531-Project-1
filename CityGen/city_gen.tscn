@@ -1,8 +1,23 @@
-[gd_scene load_steps=2 format=3 uid="uid://xcxftclqo6fh"]
+[gd_scene load_steps=5 format=3 uid="uid://xcxftclqo6fh"]
 
 [ext_resource type="Script" path="res://CityGen/generate_city.gd" id="1_xittv"]
+[ext_resource type="Script" path="res://CityGen/road_gen.gd" id="2_pa03a"]
+[ext_resource type="ArrayMesh" uid="uid://q1pkpu3pees3" path="res://materials/cube_road.res" id="3_wgxy6"]
+[ext_resource type="ArrayMesh" uid="uid://d3b742gu8t555" path="res://materials/cube_building.res" id="4_j2owl"]
 
 [node name="CityGen" type="Node3D"]
 script = ExtResource("1_xittv")
 grid_separation_x = 50.0
 grid_separation_y = 50.0
+min_building_height = 40.0
+max_building_height = 200.0
+road_width = 10.0
+
+[node name="RoadGen" type="MultiMeshInstance3D" parent="."]
+script = ExtResource("2_pa03a")
+mesh = ExtResource("3_wgxy6")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(2062.5, 0, 0, 0, 583.95, 0, 0, 0, 50, 0, 0, 0)
+visible = false
+mesh = ExtResource("4_j2owl")

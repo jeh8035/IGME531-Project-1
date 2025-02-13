@@ -14,7 +14,7 @@ func encode_coordinate(coordinate : Vector3, offX : float = 0.5, offY : float = 
 	)
 	
 
-func decode_coordinate(key : Vector2i, offX : float = 0.5, offY : float = 0.5) -> Vector3:
+func decode_coordinate(key : Vector2i) -> Vector3:
 	return Vector3(
 		(key.x) * chunk_size,
 		0,
@@ -31,6 +31,6 @@ func _process(_delta: float) -> void:
 				var asset : Node3D = chunk_asset.instantiate()
 				asset.grid_size_x = chunk_size
 				asset.grid_size_y = chunk_size
-				asset.translate(decode_coordinate(trunc_pos, x, y))
+				asset.translate(decode_coordinate(trunc_pos))
 				add_child(asset)
 				loaded_chunks[trunc_pos] = true
