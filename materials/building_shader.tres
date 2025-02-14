@@ -52,9 +52,17 @@ vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos
 	return samp;
 }
 
-float random (vec3 uv) {
+float random3(vec3 uv) {
     return fract(sin(dot(uv.xyz,
         vec3(12.9898,78.233,41.2512))) * 43758.5453123);
+}
+
+float random2(vec2 uv) {
+	return fract(sin(dot(uv, vec2(12.9898,78.233))) * 43758.5453123);
+}
+
+float random1(float seed) {
+	return random2(vec2(seed, seed));
 }
 
 void fragment() {
@@ -63,7 +71,7 @@ void fragment() {
 
 	// Random value per window
 	vec3 random_seed = vec3(round(uv1_triplanar_pos.x - 0.5), round(uv1_triplanar_pos.y - 0.5), round(uv1_triplanar_pos.z - 0.5));
-	float random_window_val = random(random_seed);
+	float random_window_val = random3(random_seed);
 	
 	// Make emissive windows
 	bool is_window = 
@@ -74,7 +82,7 @@ void fragment() {
 		// Window size
 		(uv_tex.x > 0.30 && uv_tex.x < 0.7 &&
 		uv_tex.y > 0.20 && uv_tex.y < 0.8);
-	EMISSION = vec3(float(is_window));
+	EMISSION = vec3(float(is_window) * random1(random_window_val));
 	
 	
 	// Basic material stuff below:

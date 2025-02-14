@@ -1,17 +1,33 @@
-[gd_scene load_steps=6 format=3 uid="uid://b3585kfpqb5tk"]
+[gd_scene load_steps=9 format=3 uid="uid://b3585kfpqb5tk"]
 
+[ext_resource type="Shader" uid="uid://baynppg01a1tg" path="res://materials/Sky/sky_shader.tres" id="1_t0npv"]
 [ext_resource type="Script" path="res://addons/freecam_3D/freecam.gd" id="2_ly6js"]
 [ext_resource type="Script" path="res://CityGen/load_chunks.gd" id="3_ofmyf"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_36xa7"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_1ci7p"]
+noise_type = 2
+frequency = 0.0794
+fractal_octaves = 1
 
-[sub_resource type="Sky" id="Sky_yudeg"]
-sky_material = SubResource("ProceduralSkyMaterial_36xa7")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_pyh08"]
+width = 2048
+height = 1024
+invert = true
+in_3d_space = true
+seamless = true
+noise = SubResource("FastNoiseLite_1ci7p")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ty37a"]
+shader = ExtResource("1_t0npv")
+shader_parameter/Texture2DParameter = SubResource("NoiseTexture2D_pyh08")
+
+[sub_resource type="Sky" id="Sky_hjmpy"]
+sky_material = SubResource("ShaderMaterial_ty37a")
 
 [sub_resource type="Environment" id="Environment_h7qrd"]
-background_mode = 1
+background_mode = 2
 background_color = Color(0.136826, 0.136826, 0.136826, 1)
-sky = SubResource("Sky_yudeg")
+sky = SubResource("Sky_hjmpy")
 
 [node name="Main" type="Node3D"]
 
@@ -21,7 +37,7 @@ environment = SubResource("Environment_h7qrd")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
 transform = Transform3D(0.864599, -0.150624, 0.479354, 0, 0.954011, 0.299773, -0.502462, -0.259184, 0.824837, 0, 317, 0)
 visible = false
-light_energy = 10.0
+light_color = Color(0.564962, 0.564962, 0.564962, 1)
 shadow_enabled = true
 directional_shadow_mode = 1
 directional_shadow_max_distance = 500.0
