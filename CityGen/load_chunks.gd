@@ -2,6 +2,7 @@ extends Node
 
 @export var player_node : Node3D
 @export var chunk_size : int
+@export var chunk_gen_range : int
 
 var chunk_asset := preload("res://CityGen/city_gen.tscn")
 
@@ -23,8 +24,8 @@ func decode_coordinate(key : Vector2i) -> Vector3:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
-	for x in range(-1, 2):
-		for y in range(-1, 2):
+	for x in range(-chunk_gen_range, chunk_gen_range + 1):
+		for y in range(-chunk_gen_range, chunk_gen_range + 1):
 			var trunc_pos := encode_coordinate(player_node.global_position, x, y)
 			
 			if !loaded_chunks.has(trunc_pos):

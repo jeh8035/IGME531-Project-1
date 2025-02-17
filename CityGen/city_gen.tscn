@@ -19,4 +19,5 @@ mesh = ExtResource("3_wgxy6")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(11, 0, 0, 0, 100, 0, 0, 0, 50, 0, 0, 0)
+visible = false
 mesh = ExtResource("4_j2owl")

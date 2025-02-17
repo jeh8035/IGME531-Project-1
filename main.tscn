@@ -46,9 +46,10 @@ directional_shadow_max_distance = 500.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 105, 62)
 script = ExtResource("2_ly6js")
 overlay_text = false
-target_speed = 10.0
+target_speed = 1.0
 
 [node name="Chunks" type="Node3D" parent="." node_paths=PackedStringArray("player_node")]
 script = ExtResource("3_ofmyf")
 player_node = NodePath("../Freecam3D")
 chunk_size = 300
+chunk_gen_range = 5

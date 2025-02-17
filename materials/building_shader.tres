@@ -65,6 +65,10 @@ float random1(float seed) {
 	return random2(vec2(seed, seed));
 }
 
+float random1_alt(float seed) {
+	return random2(vec2(seed, -seed));
+}
+
 void fragment() {
 	// UV for a window \"square\"
 	vec4 uv_tex = triplanar_texture(uv_texture, uv1_power_normal, uv1_triplanar_pos);
@@ -76,13 +80,15 @@ void fragment() {
 	// Make emissive windows
 	bool is_window = 
 		// Turn off some windows
-		random_window_val > 0.5 &&
+		random_window_val > 0.8 &&
 		// No windows on top/bottom faces 
 		(INV_VIEW_MATRIX * vec4(NORMAL.xyz, 0.0)).y < 0.2 &&
 		// Window size
 		(uv_tex.x > 0.30 && uv_tex.x < 0.7 &&
 		uv_tex.y > 0.20 && uv_tex.y < 0.8);
-	EMISSION = vec3(float(is_window) * random1(random_window_val));
+	float window_intensity = random1(random_window_val);
+	window_intensity *= (0.5 + sin(TIME * random1_alt(random_window_val))/2.0);
+	EMISSION = vec3(float(is_window) * window_intensity);
 	
 	
 	// Basic material stuff below:
