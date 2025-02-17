@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://b3585kfpqb5tk"]
+[gd_scene load_steps=10 format=3 uid="uid://b3585kfpqb5tk"]
 
 [ext_resource type="Shader" uid="uid://baynppg01a1tg" path="res://materials/Sky/sky_shader.tres" id="1_t0npv"]
 [ext_resource type="Script" path="res://addons/freecam_3D/freecam.gd" id="2_ly6js"]
+[ext_resource type="ArrayMesh" uid="uid://d3b742gu8t555" path="res://materials/cube_building.res" id="2_y4mfg"]
 [ext_resource type="Script" path="res://CityGen/load_chunks.gd" id="3_ofmyf"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_1ci7p"]
@@ -36,11 +37,14 @@ environment = SubResource("Environment_h7qrd")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
 transform = Transform3D(0.864599, -0.150624, 0.479354, 0, 0.954011, 0.299773, -0.502462, -0.259184, 0.824837, 0, 317, 0)
-visible = false
-light_color = Color(0.564962, 0.564962, 0.564962, 1)
-shadow_enabled = true
-directional_shadow_mode = 1
+light_color = Color(0.34902, 0.34902, 0.431373, 1)
+light_energy = 0.1
 directional_shadow_max_distance = 500.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WorldEnvironment"]
+transform = Transform3D(11, 0, 0, 0, 100, 0, 0, 0, 50, 0, 0, 0)
+visible = false
+mesh = ExtResource("2_y4mfg")
 
 [node name="Freecam3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 105, 62)
