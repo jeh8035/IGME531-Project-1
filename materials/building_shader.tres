@@ -24,6 +24,9 @@ varying vec3 uv1_power_normal;
 uniform vec3 uv1_scale;
 uniform vec3 uv1_offset;
 
+varying vec3 obj_vertex;
+varying flat vec3 obj_cam;
+
 void vertex() {
 	vec3 normal = MODEL_NORMAL_MATRIX * NORMAL;
 
@@ -42,6 +45,12 @@ void vertex() {
 	uv1_triplanar_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz * uv1_scale + uv1_offset;
 	uv1_power_normal /= dot(uv1_power_normal, vec3(1.0));
 	uv1_triplanar_pos *= vec3(1.0, -1.0, 1.0);
+	
+	// For interior mapping
+	obj_vertex = uv1_triplanar_pos;
+	obj_cam = inverse(MODELVIEW_MATRIX)[3].xyz;
+	obj_cam = (MODEL_MATRIX * vec4(obj_cam, 1.0)).xyz * uv1_scale + uv1_offset;
+	obj_cam *= vec3(1.0, -1.0, 1.0);
 }
 
 vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
@@ -77,6 +86,8 @@ void fragment() {
 	vec3 random_seed = vec3(round(uv1_triplanar_pos.x - 0.5), round(uv1_triplanar_pos.y - 0.5), round(uv1_triplanar_pos.z - 0.5));
 	float random_window_val = random3(random_seed);
 	
+	const vec2 WINDOW_SIZE = vec2(1.0, 1.0);
+	
 	// Make emissive windows
 	bool is_window = 
 		// Turn off some windows
@@ -84,15 +95,33 @@ void fragment() {
 		// No windows on top/bottom faces 
 		(INV_VIEW_MATRIX * vec4(NORMAL.xyz, 0.0)).y < 0.2 &&
 		// Window size
-		(uv_tex.x > 0.30 && uv_tex.x < 0.7 &&
-		uv_tex.y > 0.20 && uv_tex.y < 0.8);
+		(uv_tex.x > (0.50 - WINDOW_SIZE.x/2.0) &&
+			uv_tex.x < (0.5 + WINDOW_SIZE.x/2.0) &&
+			uv_tex.y > (0.5 - WINDOW_SIZE.y/2.0) &&
+			uv_tex.y < (0.5 + WINDOW_SIZE.y/2.0));
 	float window_intensity = random1(random_window_val);
 	window_intensity *= (0.5 + sin(TIME * random1_alt(random_window_val))/2.0);
 	EMISSION = vec3(float(is_window) * window_intensity);
 	
+	// Interior mapping
+	const float FLOOR_HEIGHT = 1.0;
+	vec3 cam2pix = obj_vertex - obj_cam;
+	float ceiling_y;
+	float blue;
+	if (cam2pix.y > 0.0) {
+		ceiling_y = ceil(obj_vertex.y / FLOOR_HEIGHT) * FLOOR_HEIGHT;
+		blue = 0.0;
+	} else {
+		ceiling_y = (ceil(obj_vertex.y / FLOOR_HEIGHT) - 1.0) * FLOOR_HEIGHT;
+		blue = 1.0;
+	}
+	float t = (ceiling_y - obj_cam.y) / cam2pix.y;
+	vec2 interior_texcoord = obj_cam.xz + t * cam2pix.xz;
+	ALBEDO = vec3(fract(interior_texcoord), blue);
 	
-	// Basic material stuff below:
-	ALBEDO = albedo.xyz;
+	// Basic material stuff below
+	
+	//ALBEDO = albedo.xyz;
 	//ALBEDO = vec3(random_seed.x, random_seed.y, 0.0);//albedo.xyz;
 
 	float metallic_tex = dot(triplanar_texture(texture_metallic, uv1_power_normal, uv1_triplanar_pos), metallic_texture_channel);
