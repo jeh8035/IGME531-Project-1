@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://g44uw65ok3o3"]
 
-[ext_resource type="Script" path="res://BuildingGeneration/building_gen.gd" id="1_4s4mc"]
+[ext_resource type="Script" uid="uid://ccy03hvwpyrj1" path="res://BuildingGeneration/building_gen.gd" id="1_4s4mc"]
 [ext_resource type="ArrayMesh" uid="uid://d3b742gu8t555" path="res://materials/cube_building.res" id="2_ldymc"]
 
 [node name="Building" type="MultiMeshInstance3D"]

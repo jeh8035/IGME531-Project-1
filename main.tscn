@@ -1,11 +1,11 @@
 [gd_scene load_steps=14 format=3 uid="uid://b3585kfpqb5tk"]
 
 [ext_resource type="Shader" uid="uid://baynppg01a1tg" path="res://materials/Sky/sky_shader.tres" id="1_t0npv"]
-[ext_resource type="Script" path="res://addons/freecam_3D/freecam.gd" id="2_ly6js"]
+[ext_resource type="Script" uid="uid://dy1dnxh8hs5aq" path="res://addons/freecam_3D/freecam.gd" id="2_ly6js"]
 [ext_resource type="ArrayMesh" uid="uid://d3b742gu8t555" path="res://materials/cube_building.res" id="2_y4mfg"]
-[ext_resource type="Script" path="res://CityGen/load_chunks.gd" id="3_ofmyf"]
-[ext_resource type="Shader" path="res://custom_noise.gdshader" id="5_hbk7g"]
-[ext_resource type="Script" path="res://mesh_instance_3d_2.gd" id="6_1w6j3"]
+[ext_resource type="Script" uid="uid://bpg7sddwtyj0a" path="res://CityGen/load_chunks.gd" id="3_ofmyf"]
+[ext_resource type="Shader" uid="uid://ch1y0y08ot06h" path="res://custom_noise.gdshader" id="5_hbk7g"]
+[ext_resource type="Script" uid="uid://cqjglkvwqfgbd" path="res://mesh_instance_3d_2.gd" id="6_1w6j3"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_1ci7p"]
 noise_type = 2
@@ -75,7 +75,6 @@ overlay_text = false
 target_speed = 1.0
 
 [node name="Chunks" type="Node3D" parent="." node_paths=PackedStringArray("player_node")]
-visible = false
 script = ExtResource("3_ofmyf")
 player_node = NodePath("../Freecam3D")
 chunk_size = 300

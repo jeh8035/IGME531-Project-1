@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://xcxftclqo6fh"]
 
-[ext_resource type="Script" path="res://CityGen/generate_city.gd" id="1_xittv"]
-[ext_resource type="Script" path="res://CityGen/road_gen.gd" id="2_pa03a"]
+[ext_resource type="Script" uid="uid://dvske5b7on0ac" path="res://CityGen/generate_city.gd" id="1_xittv"]
+[ext_resource type="Script" uid="uid://55co4u53iblo" path="res://CityGen/road_gen.gd" id="2_pa03a"]
 [ext_resource type="ArrayMesh" uid="uid://q1pkpu3pees3" path="res://materials/cube_road.res" id="3_wgxy6"]
 [ext_resource type="ArrayMesh" uid="uid://d3b742gu8t555" path="res://materials/cube_building.res" id="4_j2owl"]
 

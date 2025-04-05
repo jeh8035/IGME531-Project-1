@@ -1,0 +1,17 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://dg2wxsvqam144"]
+
+[ext_resource type="Shader" uid="uid://cjdo7j28irrqc" path="res://materials/Buildings/building_shader.tres" id="1_8do67"]
+[ext_resource type="Texture2D" uid="uid://ce6q3v4rdkup0" path="res://materials/Buildings/uv.png" id="2_p02il"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_8do67")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/uv_texture = ExtResource("2_p02il")
+shader_parameter/roughness = 0.41
+shader_parameter/metallic_texture_channel = Vector4(0, 0, 0, 0)
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/uv1_blend_sharpness = 1.0
+shader_parameter/uv1_scale = Vector3(0.5, 0.5, 0.5)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
