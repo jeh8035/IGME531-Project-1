@@ -1,93 +1,27 @@
-[gd_scene load_steps=14 format=3 uid="uid://b3585kfpqb5tk"]
+[gd_scene load_steps=5 format=3 uid="uid://b3585kfpqb5tk"]
 
-[ext_resource type="Shader" uid="uid://baynppg01a1tg" path="res://materials/Sky/sky_shader.tres" id="1_t0npv"]
 [ext_resource type="Script" uid="uid://dy1dnxh8hs5aq" path="res://addons/freecam_3D/freecam.gd" id="2_ly6js"]
-[ext_resource type="ArrayMesh" uid="uid://d3b742gu8t555" path="res://materials/cube_building.res" id="2_y4mfg"]
-[ext_resource type="Script" uid="uid://bpg7sddwtyj0a" path="res://CityGen/load_chunks.gd" id="3_ofmyf"]
-[ext_resource type="Shader" uid="uid://ch1y0y08ot06h" path="res://custom_noise.gdshader" id="5_hbk7g"]
-[ext_resource type="Script" uid="uid://cqjglkvwqfgbd" path="res://mesh_instance_3d_2.gd" id="6_1w6j3"]
+[ext_resource type="Shader" uid="uid://cr2x1mes4i3ix" path="res://materials/Raymarching/raymarch.gdshader" id="7_272bh"]
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_1ci7p"]
-noise_type = 2
-frequency = 0.0794
-fractal_octaves = 1
+[sub_resource type="PlaneMesh" id="PlaneMesh_272bh"]
+size = Vector2(1.778, 1)
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_pyh08"]
-width = 2048
-height = 1024
-invert = true
-in_3d_space = true
-seamless = true
-noise = SubResource("FastNoiseLite_1ci7p")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ty37a"]
-shader = ExtResource("1_t0npv")
-shader_parameter/Texture2DParameter = SubResource("NoiseTexture2D_pyh08")
-
-[sub_resource type="Sky" id="Sky_hjmpy"]
-sky_material = SubResource("ShaderMaterial_ty37a")
-
-[sub_resource type="Environment" id="Environment_h7qrd"]
-background_mode = 2
-background_color = Color(0.136826, 0.136826, 0.136826, 1)
-sky = SubResource("Sky_hjmpy")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_rh7u8"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5vw27"]
 render_priority = 0
-shader = ExtResource("5_hbk7g")
-shader_parameter/color = Vector4(0, 0, 0, 1)
-shader_parameter/scale = 5.0
-shader_parameter/disp = Vector2(0, 0)
-shader_parameter/speed = 0.1
-shader_parameter/nucleus = 0.0
-shader_parameter/contrast = 0.5
-shader_parameter/line = 1.0
-shader_parameter/layer1 = 0.0
-shader_parameter/layer2 = 1.0
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_plf8f"]
-lightmap_size_hint = Vector2i(502, 502)
-material = SubResource("ShaderMaterial_rh7u8")
-size = Vector2(10, 10)
-subdivide_width = 32
-subdivide_depth = 32
+shader = ExtResource("7_272bh")
+shader_parameter/ASPECT_RATIO = 1.778
 
 [node name="Main" type="Node3D"]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_h7qrd")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
-transform = Transform3D(0.864599, -0.150625, 0.479354, 0, 0.954011, 0.299773, -0.502462, -0.259183, 0.824837, 0, 54.6343, 0)
-light_color = Color(0.34902, 0.34902, 0.431373, 1)
-directional_shadow_max_distance = 500.0
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WorldEnvironment"]
-transform = Transform3D(11, 0, 0, 0, 100, 0, 0, 0, 50, 0, 0, 0)
-visible = false
-mesh = ExtResource("2_y4mfg")
-
 [node name="Freecam3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 105, 62)
-visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+projection = 1
 script = ExtResource("2_ly6js")
 overlay_text = false
 target_speed = 1.0
 
-[node name="Chunks" type="Node3D" parent="." node_paths=PackedStringArray("player_node")]
-script = ExtResource("3_ofmyf")
-player_node = NodePath("../Freecam3D")
-chunk_size = 300
-chunk_gen_range = 5
-
-[node name="OmniLight3D" type="OmniLight3D" parent="."]
-transform = Transform3D(-0.554743, 0, -0.832022, 0, 1, 0, 0.832022, 0, -0.554743, 0.984493, 15.3336, -0.251579)
-light_energy = 10.0
-light_indirect_energy = 9.242
-omni_range = 80.0
-
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0280041, 0.0534767, -0.110411)
-mesh = SubResource("PlaneMesh_plf8f")
-skeleton = NodePath("../WorldEnvironment")
-script = ExtResource("6_1w6j3")
+[node name="Render Screen" type="MeshInstance3D" parent="Freecam3D"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -1)
+gi_mode = 0
+mesh = SubResource("PlaneMesh_272bh")
+surface_material_override/0 = SubResource("ShaderMaterial_5vw27")
