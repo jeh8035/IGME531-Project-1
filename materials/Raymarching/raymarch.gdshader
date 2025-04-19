@@ -5,7 +5,7 @@ const int ITER_COUNT = 100;
 uniform float ASPECT_RATIO;
 
 uniform vec4 color = vec4(0.0,0.0,0.0,1.0); // Base color of the shader
-uniform float scale : hint_range(0.1, 5.0, 0.1) = 1; // Scaling factor for the pattern
+uniform float scale : hint_range(0.01, 5.0, 0.01) = .01; // Scaling factor for the pattern
 uniform vec2 disp = vec2(0.0, 0.0); // Displacement of the texture
 uniform float speed : hint_range(0.0, 5.0, 0.1) = 1; // Controls animation speed
 uniform float nucleus = 1.0; // Strength of cell nucleus highlights
@@ -61,6 +61,7 @@ vec2 split_tile(vec2 uv, vec2 cell_id) {
         if (rand_split > 0.5) {
             // Vertical split
             uv.x = fract(uv.x * rand_split * 2.0);
+			//d = 10.0 * clamp(exp(-2e1 * md), 0.0, 1.0) * layer2;
         } else {
             // Horizontal split
             uv.y = fract(uv.y * rand_split * 5.0);
@@ -122,6 +123,8 @@ vec4 voronoi(vec2 uv){
     O += mix(vec4(0.5, 0, (ia.y - iTime) / 2.0, 1.0) + 0.3,
              vec4(0, 0.3, (ia.x - 0.0) * 0.3, 0) + 0.2,
              hash12(ia)) * layer2;
+	// Set cell color to black
+	O = vec4(0, 0, 0, 0);
 
 	// Searches for the nearest cell boundary
 	// Uses dot products to measure distances to edges
@@ -138,9 +141,9 @@ vec4 voronoi(vec2 uv){
 
 	// Adds strong borders between cells.
 	// Note: exp(-2e2 * md) changes size of cell boundry
-    // d = 10.0 * clamp(exp(-2e1 * md), 0.0, 1.0) * layer2;
+    d = 10.0 * clamp(exp(-10.0 * md), 0.0, 1.0) * layer2;
 	// Sharp boundary instead of glow (.1 for size)
-	d = (md < 0.05 ? 2.0 : 0.0) * layer2;
+	//d = (md < 0.05 ? 2.0 : 0.0) * layer2;
 	// Adds striping effects within cells.
     //d += 0.1 * clamp(exp(-2e2 * cos(80.0 * md)), 0.0, 1.0) * line;
 
@@ -164,7 +167,7 @@ vec4 voronoi(vec2 uv){
 	vec3 grid_color = vec3(2.0) * grid_mask;
 
 	//d = mix(d, 2.0, grid_mask); // Apply the grid effect only where grid_mask is 1
-	O.rgb = mix(O.rgb, grid_color, grid_mask); // Blend grid lines into output
+	//O.rgb = mix(O.rgb, grid_color, grid_mask); // Blend grid lines into output
 
 	// Calculate the minumum BBox of any area that is NOT white
 	// Filter out (fill with white) any small areas
@@ -185,7 +188,9 @@ void vertex() {
 float distToNearestSurface(vec3 point){
 	vec4 shape = voronoi(point.xz);
 	
-	return (shape.x + shape.y + shape.z > 0.1) ? 0.0 : 0.01;
+	if (shape.x < 0.1) return 0.0;
+	
+	return shape.x;// > 0.1 ? 0.0 : 0.01;
 	
 	
     //vec3 center = vec3(0.5, 0.5, -20.0);
@@ -235,7 +240,7 @@ void fragment() {
         }
     }
 	
-	if (hit) final_color = voronoi(rayOrigin.xz).xyz;// vec3(0.0, 1.0, 0.0);
+	if (hit) final_color = vec3(0.0, 1.0, 0.0);//voronoi(rayOrigin.xz).xyz;// 
 	ALBEDO = final_color;
 	//ALBEDO = voronoi(UV).xyz;
 }
