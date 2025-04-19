@@ -3,9 +3,9 @@ shader_type spatial;
 // ---------- TODO ----------
 // Get rid of unessesary vars from base Voronoi shader
 // Split grid generation and voronoi
-// Create a more random grid pattern (vary x & y distances) 
+// Create a more random grid pattern (vary x & y distances)
 // Apply a second grid-pass for more granular buildings (Or just fiddle with the split alorithm more)
-// Filter out buildings that are too small (flood-fill algo?) 
+// Filter out buildings that are too small (flood-fill algo?)
 // Use perlin + distict size to generate a building heightmap
 
 
@@ -23,14 +23,14 @@ uniform float layer2 : hint_range(0.0, 2.0, 0.1) = 1.0; // Influence of secondar
 #define iTime TIME * speed
 #define iResolution 1.0 / SCREEN_PIXEL_SIZE
 
-// Psudo random number 
+// Psudo random number
 float hash12(vec2 p) {
     vec3 p3 = fract(vec3(p.xyx) * 0.1031);
     p3 += dot(p3, p3.zyx + 33.33);
     return fract((p3.x + p3.y) * p3.z);
 }
 
-// Cell radius calculation 
+// Cell radius calculation
 float rcel(vec2 ip) {
     return mix(0.25, 0.45, hash12(ip + 0.2));
 }
@@ -55,7 +55,7 @@ mat2 rotate2D(float a) {
 vec2 split_tile(vec2 uv, vec2 cell_id) {
     // Use cell_id as a seed for consistent randomness
     float rand_split = hash12(cell_id);
-    
+
     // Randomly decide to split the tile
     if (rand_split > 0.1 && rand_split < 0.9) {
         // Randomly choose split direction
@@ -67,7 +67,7 @@ vec2 split_tile(vec2 uv, vec2 cell_id) {
             uv.y = fract(uv.y * rand_split * 5.0);
         }
     }
-    
+
     return uv;
 }
 
@@ -81,16 +81,16 @@ vec4 filter_small_components(vec4 O, vec2 uv) {
 
 vec4 voronoi(vec2 uv){
 	vec4 O = color; // Base color output
-    
+
     // Use UVs instead of SCREEN_UV to work in 3D
     vec2 U = (uv - disp) * scale; // Adjusted UV coordinates, scaled and displaced.
     float ratio = 1.0; // Assuming square UV mapping
 
     vec2 R = vec2(1.0); // Normalized resolution
     vec2 u = 3.0 * (U + U - R) / R.y + vec2(0, iTime); // Adjusted coordinate space
-	
+
 	// Draws grid lines with exponental falloff
-    vec2 g = (u - 0.5) - round(u - 0.5); 
+    vec2 g = (u - 0.5) - round(u - 0.5);
     g = abs(g);
     if (g.x < g.y) g = g.yx;
     O += 0.4 * exp(-1e2 * g.y) * layer1;
@@ -144,45 +144,45 @@ vec4 voronoi(vec2 uv){
 	d = (md < 0.05 ? 2.0 : 0.0) * layer2;
 	// Adds striping effects within cells.
     //d += 0.1 * clamp(exp(-2e2 * cos(80.0 * md)), 0.0, 1.0) * line;
-	
+
 	// ---------- Building Grid Stuff ----------
 	float angle = hash12(ia) * 6.2831 + iTime * 0.001;
-	
+
 	// Create a grid inside each cell
 	vec2 local_uv = vec2(u.x * 5.0, u.y * 5.0); // Controls grid density
 	local_uv = rotate2D(angle) * local_uv; // Rotate based on nucleus direction
-	
+
 	// Draw grid
 	vec2 tile_uv = fract(local_uv);
     vec2 tile_id = floor(local_uv);
-    
+
     // Apply random tile splitting
     tile_uv = split_tile(tile_uv, tile_id);
-	
+
 	float grid_lines = min(abs(tile_uv.x), abs(tile_uv.y)); // Distance to the nearest grid line
 	float grid_mask = step(grid_lines, 0.1); // Solid grid lines with thickness 0.03
 	// Set grid lines to solid white
-	vec3 grid_color = vec3(2.0) * grid_mask; 
-	
+	vec3 grid_color = vec3(2.0) * grid_mask;
+
 	//d = mix(d, 2.0, grid_mask); // Apply the grid effect only where grid_mask is 1
 	O.rgb = mix(O.rgb, grid_color, grid_mask); // Blend grid lines into output
-	
+
 	// Calculate the minumum BBox of any area that is NOT white
 	// Filter out (fill with white) any small areas
 	O = filter_small_components(O, uv);
-	
+
 	// Applies contrast adjustments.
     O = max(O - contrast * d, 0.0) + d;
-	
+
 	return O;
 }
 
 void fragment() {
 	vec4 O = voronoi(UV);
-    
+
     // Assign output color in a spatial shader
     ALBEDO = O.rgb;
     //ALPHA = O.a * color.a;
-	
+
 	ALPHA = 1.0;
 }
