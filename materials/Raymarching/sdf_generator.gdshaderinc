@@ -71,11 +71,11 @@ vec4 filter_small_components(vec4 O, vec2 uv) {
 }
 
 
-vec4 voronoi(vec2 uv){
+float voronoi(vec3 point){
 	vec4 O = color; // Base color output
 
     // Use UVs instead of SCREEN_UV to work in 3D
-    vec2 U = (uv - disp) * scale; // Adjusted UV coordinates, scaled and displaced.
+    vec2 U = (point.xz - disp) * scale; // Adjusted UV coordinates, scaled and displaced.
     float ratio = 1.0; // Assuming square UV mapping
 
     vec2 R = vec2(1.0); // Normalized resolution
@@ -163,10 +163,29 @@ vec4 voronoi(vec2 uv){
 
 	// Calculate the minumum BBox of any area that is NOT white
 	// Filter out (fill with white) any small areas
-	O = filter_small_components(O, uv);
+	O = filter_small_components(O, point.xz);
 
 	// Applies contrast adjustments.
-    O = max(O - contrast * d, 0.0) + d;
+    //O = max(O - contrast * d, 0.0) + d;
+	
+	
+    O = O;
 
-	return O;
+	// Height SDF
+	float height_top = 0.0 * scale;
+	float height_bottom = -5.0 * scale;
+	float height_total = height_top - height_bottom;
+	
+	float scaled_height = point.y * scale;
+	float sdf_height = float(scaled_height > height_top) * abs(scaled_height - height_top) +
+						float(scaled_height < height_bottom) * abs(scaled_height - height_bottom); +
+						float(scaled_height > height_bottom && scaled_height < height_bottom + height_total/2.0) * -abs(height_bottom - scaled_height) +
+						float(scaled_height > height_bottom + height_total/2.0 && scaled_height < height_top) * -abs(height_top - scaled_height);
+	float sdf_is_neg = sdf_height < 0.0 ? -1.0 : 1.0;
+
+
+	// Add in height
+	float final_dist = sqrt(pow(md, 2.0) + pow(sdf_height, 2.0));
+
+	return final_dist;
 }

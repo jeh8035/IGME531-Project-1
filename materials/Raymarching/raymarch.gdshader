@@ -10,17 +10,18 @@ uniform float ASPECT_RATIO;
 varying vec3 CAM_POS;
 varying vec3 CAM_DIR;
 
+varying vec3 WORLD_POS;
+
 void vertex() {
 	CAM_POS = CAMERA_POSITION_WORLD;
 	CAM_DIR = -CAMERA_DIRECTION_WORLD;
+
+	WORLD_POS = VERTEX;
 }
  
+// Sample the SDF
 float distToNearestSurface(vec3 point){
-	vec4 shape = voronoi(point.xz);
-	
-	if (shape.x < 0.1) return 0.0;
-	
-	return shape.x;// > 0.1 ? 0.0 : 0.01;
+	return voronoi(point) * (0.1/scale);// > 0.1 ? 0.0 : 0.01;
 	
 	
     //vec3 center = vec3(0.5, 0.5, -20.0);
@@ -29,6 +30,7 @@ float distToNearestSurface(vec3 point){
     //return length(center - point) - radius;
 }
 
+// Get ray direction going out of the screen
 vec3 getRayDir(vec2 uv_center) {
 	vec2 angle = vec2(
 		asin(CAM_DIR.y),
@@ -50,7 +52,7 @@ vec3 getRayDir(vec2 uv_center) {
 
 void fragment() {
 	
-	//ALBEDO = voronoi(UV).xyz;
+	//ALBEDO = voronoi(WORLD_POS.xz).xyz;
 	
 	//Scale position to UV
 	vec2 uv_center = UV * vec2(2.0f, 2.0f) - 1.0;
@@ -62,20 +64,22 @@ void fragment() {
 	vec3 final_color = vec3(0.0, 0.0, 0.0);
 
 	bool hit = false;
+	float final_dist = 0.0;
+	
 	// Raymarching
 	for(int i = 0; i < ITER_COUNT; i++){
         float dist = distToNearestSurface(rayOrigin);
 
         rayOrigin += rayDir * dist;
-        if(dist < 0.01f) {
+        if(dist < 0.05) {
 			hit = true;
             break;
         }
+		final_dist += dist;
     }
 	
-	if (hit) final_color = vec3(0.0, 1.0, 0.0);//voronoi(rayOrigin.xz).xyz;// 
+	if (hit) final_color = vec3(0.0, 0.01 * final_dist, 0.0);//voronoi(rayOrigin.xz).xyz;// 
 	ALBEDO = final_color;
-	//ALBEDO = voronoi(UV).xyz;
 }
 
 //void light() {
