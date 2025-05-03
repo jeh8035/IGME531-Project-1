@@ -1,16 +1,6 @@
-shader_type spatial;
-
-// ---------- TODO ----------
-// Get rid of unessesary vars from base Voronoi shader
-// Split grid generation and voronoi
-// Create a more random grid pattern (vary x & y distances)
-// Apply a second grid-pass for more granular buildings (Or just fiddle with the split alorithm more)
-// Filter out buildings that are too small (flood-fill algo?)
-// Use perlin + distict size to generate a building heightmap
-
 
 uniform vec4 color = vec4(0.0,0.0,0.0,1.0); // Base color of the shader
-uniform float scale : hint_range(0.1, 5.0, 0.1) = 1; // Scaling factor for the pattern
+uniform float scale : hint_range(0.01, 5.0, 0.01) = .01; // Scaling factor for the pattern
 uniform vec2 disp = vec2(0.0, 0.0); // Displacement of the texture
 uniform float speed : hint_range(0.0, 5.0, 0.1) = 1; // Controls animation speed
 uniform float nucleus = 1.0; // Strength of cell nucleus highlights
@@ -18,6 +8,7 @@ uniform float contrast : hint_range(0.0, 5.0, 0.1) = 0.5; // Adjusts contrast
 uniform float line : hint_range(0.0, 5.0, 0.1) = 1.0; // Strength of lines in cells
 uniform float layer1 : hint_range(0.0, 5.0, 0.1) = 1.0; // Influence of first layer of shading
 uniform float layer2 : hint_range(0.0, 2.0, 0.1) = 1.0; // Influence of secondary shading
+
 
 // Macros
 #define iTime TIME * speed
@@ -62,6 +53,7 @@ vec2 split_tile(vec2 uv, vec2 cell_id) {
         if (rand_split > 0.5) {
             // Vertical split
             uv.x = fract(uv.x * rand_split * 2.0);
+			//d = 10.0 * clamp(exp(-2e1 * md), 0.0, 1.0) * layer2;
         } else {
             // Horizontal split
             uv.y = fract(uv.y * rand_split * 5.0);
@@ -79,11 +71,11 @@ vec4 filter_small_components(vec4 O, vec2 uv) {
 }
 
 
-vec4 voronoi(vec2 uv){
+float voronoi(vec3 point){
 	vec4 O = color; // Base color output
 
     // Use UVs instead of SCREEN_UV to work in 3D
-    vec2 U = (uv - disp) * scale; // Adjusted UV coordinates, scaled and displaced.
+    vec2 U = (point.xz - disp) * scale; // Adjusted UV coordinates, scaled and displaced.
     float ratio = 1.0; // Assuming square UV mapping
 
     vec2 R = vec2(1.0); // Normalized resolution
@@ -123,6 +115,8 @@ vec4 voronoi(vec2 uv){
     O += mix(vec4(0.5, 0, (ia.y - iTime) / 2.0, 1.0) + 0.3,
              vec4(0, 0.3, (ia.x - 0.0) * 0.3, 0) + 0.2,
              hash12(ia)) * layer2;
+	// Set cell color to black
+	O = vec4(0, 0, 0, 0);
 
 	// Searches for the nearest cell boundary
 	// Uses dot products to measure distances to edges
@@ -139,9 +133,9 @@ vec4 voronoi(vec2 uv){
 
 	// Adds strong borders between cells.
 	// Note: exp(-2e2 * md) changes size of cell boundry
-    // d = 10.0 * clamp(exp(-2e1 * md), 0.0, 1.0) * layer2;
+    d = 10.0 * clamp(exp(-10.0 * md), 0.0, 1.0) * layer2;
 	// Sharp boundary instead of glow (.1 for size)
-	d = (md < 0.05 ? 2.0 : 0.0) * layer2;
+	//d = (md < 0.05 ? 2.0 : 0.0) * layer2;
 	// Adds striping effects within cells.
     //d += 0.1 * clamp(exp(-2e2 * cos(80.0 * md)), 0.0, 1.0) * line;
 
@@ -165,24 +159,33 @@ vec4 voronoi(vec2 uv){
 	vec3 grid_color = vec3(2.0) * grid_mask;
 
 	//d = mix(d, 2.0, grid_mask); // Apply the grid effect only where grid_mask is 1
-	O.rgb = mix(O.rgb, grid_color, grid_mask); // Blend grid lines into output
+	//O.rgb = mix(O.rgb, grid_color, grid_mask); // Blend grid lines into output
 
 	// Calculate the minumum BBox of any area that is NOT white
 	// Filter out (fill with white) any small areas
-	O = filter_small_components(O, uv);
+	O = filter_small_components(O, point.xz);
 
 	// Applies contrast adjustments.
-    O = max(O - contrast * d, 0.0) + d;
+    //O = max(O - contrast * d, 0.0) + d;
+	
+	
+    O = O;
 
-	return O;
-}
+	// Height SDF
+	float height_top = 0.0 * scale;
+	float height_bottom = -5.0 * scale;
+	float height_total = height_top - height_bottom;
+	
+	float scaled_height = point.y * scale;
+	float sdf_height = float(scaled_height > height_top) * abs(scaled_height - height_top) +
+						float(scaled_height < height_bottom) * abs(scaled_height - height_bottom); +
+						float(scaled_height > height_bottom && scaled_height < height_bottom + height_total/2.0) * -abs(height_bottom - scaled_height) +
+						float(scaled_height > height_bottom + height_total/2.0 && scaled_height < height_top) * -abs(height_top - scaled_height);
+	float sdf_is_neg = sdf_height < 0.0 ? -1.0 : 1.0;
 
-void fragment() {
-	vec4 O = voronoi(UV);
 
-    // Assign output color in a spatial shader
-    ALBEDO = O.rgb;
-    //ALPHA = O.a * color.a;
+	// Add in height
+	float final_dist = sqrt(pow(md, 2.0) + pow(sdf_height, 2.0));
 
-	ALPHA = 1.0;
+	return final_dist;
 }
