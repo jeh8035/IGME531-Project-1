@@ -1,6 +1,6 @@
 
 uniform vec4 color = vec4(0.0,0.0,0.0,1.0); // Base color of the shader
-uniform float scale : hint_range(0.01, 5.0, 0.01) = .01; // Scaling factor for the pattern
+uniform float scale : hint_range(0.001, 1.0, 0.01) = .01; // Scaling factor for the pattern
 uniform vec2 disp = vec2(0.0, 0.0); // Displacement of the texture
 uniform float speed : hint_range(0.0, 5.0, 0.1) = 1; // Controls animation speed
 uniform float nucleus = 1.0; // Strength of cell nucleus highlights
@@ -126,13 +126,6 @@ vec2 voronoi(vec3 point){
     vec2 R = vec2(1.0); // Normalized resolution
     vec2 u = 3.0 * (U + U - R) / R.y + vec2(0, iTime); // Adjusted coordinate space
 
-	// Draws grid lines with exponental falloff
-    vec2 g = (u - 0.5) - round(u - 0.5);
-    g = abs(g);
-    if (g.x < g.y) g = g.yx;
-    O += 0.4 * exp(-1e2 * g.y) * layer1;
-    O += exp(-1e2 * length(u)) * layer1;
-
     vec2 p = u; // Position of the current fragment
 	vec2 ip = round(p); // Rounded integer cell position
 	vec2 fp = p - ip; // Fractional part (offset inside the cell)
@@ -170,21 +163,47 @@ vec2 voronoi(vec3 point){
     }
 
 	// ---------- Building Grid Stuff ----------
+	float angle = hash12(ia) * 6.2831 + iTime * 0.001;
+
+	// Create a grid inside each cell
+	vec2 local_uv = vec2(u.x * 5.0, u.y * 5.0); // Controls grid density
+	local_uv = rotate2D(angle) * local_uv; // Rotate based on nucleus direction
+
+	// Draw grid
+	vec2 tile_uv = fract(local_uv);
+    vec2 tile_id = floor(local_uv);
+
+    // Apply random tile splitting
+    // Get road SDF and type from split_tile
+	vec2 road_data = split_tile(tile_uv, tile_id);
+	float road_dist = road_data.x;
+	float road_type = road_data.y;
 	
+	if (road_dist < 0.0) {
+	    // Inside a road
+	    if (road_type < 0.5) {
+	        // Main road
+	        O = vec4(1.0, 0.0, 0.0, 1.0);
+	    } else {
+	        // Internal road
+	        O = vec4(0.0, 0.0, 1.0, 1.0);
+		}
+    }
+
 
 	// Thickness
-	float road_dist = max(md - 0.1, 0.0);
+	road_dist *= max(md - 0.01, 0.0);
 	// Height
-	road_dist = sqrt(pow(road_dist, 2.0) + pow(sdf_height(-3.0, -5.0, point.y), 2.0));
 
 	// Buildings
 	float rand_building_value = hash12(ia);
-	float building_dist = max((0.1 - md), 0.0);
+	float building_dist = max((0.01 - road_dist), 0.0);
 	// Height
 	building_dist = sqrt(pow(building_dist, 2.0) + pow(sdf_height(rand_building_value * 50.0, -5.0, point.y), 2.0));
+	road_dist = sqrt(pow(road_dist, 2.0) + pow(sdf_height(-3.0, -5.0, point.y), 2.0));
 	
 	float min_dist = min(building_dist, road_dist);
 	float type = building_dist < road_dist ? 1.0 : 0.0;
 
-	return vec2(min_dist, type);
+	return vec2(min_dist, type); 
 }
