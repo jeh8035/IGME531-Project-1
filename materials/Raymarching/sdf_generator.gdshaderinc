@@ -72,13 +72,8 @@ vec4 filter_small_components(vec4 O, vec2 uv) {
 
 // Calculates an SDF based on a height
 float sdf_height(float top, float bottom, float height) {
-	float height_top = top * scale;
-	float height_bottom = bottom * scale;
-	float height_total = height_top - height_bottom;
-	
-	float scaled_height = height * scale;
-	return float(scaled_height > height_top) * abs(scaled_height - height_top) +
-						float(scaled_height < height_bottom) * abs(scaled_height - height_bottom);
+	return scale * float(height > top) * abs(height - top) +
+						float(height < bottom) * abs(height - bottom);
 }
 
 
@@ -128,7 +123,7 @@ vec2 voronoi(vec3 point){
              vec4(0, 0.3, (ia.x - 0.0) * 0.3, 0) + 0.2,
              hash12(ia)) * layer2;
 	// Set cell color to black
-	O = vec4(0, 0, 0, 0);
+	//O = vec4(0, 0, 0, 0);
 
 	// Searches for the nearest cell boundary
 	// Uses dot products to measure distances to edges
@@ -175,7 +170,7 @@ vec2 voronoi(vec3 point){
 
 	// Calculate the minumum BBox of any area that is NOT white
 	// Filter out (fill with white) any small areas
-	O = filter_small_components(O, point.xz);
+	//O = filter_small_components(O, point.xz);
 
 	// Applies contrast adjustments.
     //O = max(O - contrast * d, 0.0) + d;
@@ -190,13 +185,13 @@ vec2 voronoi(vec3 point){
 
 	
 	// Buildings
+	float rand_building_value = hash12(ia);
 	float building_dist = max((0.1 - md), 0.0);
 	// Height
-	building_dist = sqrt(pow(building_dist, 2.0) + pow(sdf_height(0.0, -5.0, point.y), 2.0));
+	building_dist = sqrt(pow(building_dist, 2.0) + pow(sdf_height(rand_building_value * 50.0, -5.0, point.y), 2.0));
 	
 	float min_dist = min(building_dist, road_dist);
 	float type = building_dist < road_dist ? 1.0 : 0.0;
-
 
 	return vec2(min_dist, type);
 }

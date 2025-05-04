@@ -40,9 +40,9 @@ vec3 getRayDir(vec2 uv_center) {
 }
 
 void fragment() {
-	
+
 	//ALBEDO = voronoi(WORLD_POS.xz).xyz;
-	
+
 	//Scale position to UV
 	vec2 uv_center = UV * vec2(2.0f, 2.0f) - 1.0;
 	uv_center.x *= ASPECT_RATIO;
@@ -54,14 +54,14 @@ void fragment() {
 
 	bool hit = false;
 	float final_dist = 0.0;
-	
+
 	// x = dist, y = type
 	vec2 sdf_result;
-	
+
 	// Raymarching
 	for(int i = 0; i < ITER_COUNT; i++){
 		vec2 sdf = voronoi(rayOrigin);
-		sdf_result = vec2(sdf.x * (1.0/scale), sdf.y);
+		sdf_result = vec2(sdf.x * (0.25/scale), sdf.y);
 
         rayOrigin += rayDir * sdf_result.x;
         if(sdf_result.x < 0.01) {
@@ -70,8 +70,8 @@ void fragment() {
         }
 		final_dist += sdf_result.x;
     }
-	
-	if (hit) final_color = vec3(0.01 * final_dist * sdf_result.y, 0.01 * final_dist * (1.0 - sdf_result.y), 0.0);//voronoi(rayOrigin.xz).xyz;// 
+
+	if (hit) final_color = vec3(0.01 * final_dist * sdf_result.y, 0.01 * final_dist * (1.0 - sdf_result.y), 0.0);//voronoi(rayOrigin.xz).xyz;//
 	ALBEDO = final_color;
 }
 
