@@ -12,6 +12,6 @@ void vertex() {
 	WORLD_POS = VERTEX;
 }
 void fragment() {
-	float v = voronoi(WORLD_POS);
-	ALBEDO = vec3(v, v, v);
+	vec2 v = voronoi(WORLD_POS);
+	ALBEDO = vec3(v.x, v.y, 0.0);
 }

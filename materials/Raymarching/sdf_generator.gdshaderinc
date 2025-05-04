@@ -70,8 +70,20 @@ vec4 filter_small_components(vec4 O, vec2 uv) {
     return O;
 }
 
+// Calculates an SDF based on a height
+float sdf_height(float top, float bottom, float height) {
+	float height_top = top * scale;
+	float height_bottom = bottom * scale;
+	float height_total = height_top - height_bottom;
+	
+	float scaled_height = height * scale;
+	return float(scaled_height > height_top) * abs(scaled_height - height_top) +
+						float(scaled_height < height_bottom) * abs(scaled_height - height_bottom);
+}
 
-float voronoi(vec3 point){
+
+// Returns: x = dist, y = type
+vec2 voronoi(vec3 point){
 	vec4 O = color; // Base color output
 
     // Use UVs instead of SCREEN_UV to work in 3D
@@ -171,21 +183,20 @@ float voronoi(vec3 point){
 	
     O = O;
 
-	// Height SDF
-	float height_top = 0.0 * scale;
-	float height_bottom = -5.0 * scale;
-	float height_total = height_top - height_bottom;
+	// Thickness
+	float road_dist = max(md - 0.1, 0.0);
+	// Height
+	road_dist = sqrt(pow(road_dist, 2.0) + pow(sdf_height(-3.0, -5.0, point.y), 2.0));
+
 	
-	float scaled_height = point.y * scale;
-	float sdf_height = float(scaled_height > height_top) * abs(scaled_height - height_top) +
-						float(scaled_height < height_bottom) * abs(scaled_height - height_bottom); +
-						float(scaled_height > height_bottom && scaled_height < height_bottom + height_total/2.0) * -abs(height_bottom - scaled_height) +
-						float(scaled_height > height_bottom + height_total/2.0 && scaled_height < height_top) * -abs(height_top - scaled_height);
-	float sdf_is_neg = sdf_height < 0.0 ? -1.0 : 1.0;
+	// Buildings
+	float building_dist = max((0.1 - md), 0.0);
+	// Height
+	building_dist = sqrt(pow(building_dist, 2.0) + pow(sdf_height(0.0, -5.0, point.y), 2.0));
+	
+	float min_dist = min(building_dist, road_dist);
+	float type = building_dist < road_dist ? 1.0 : 0.0;
 
 
-	// Add in height
-	float final_dist = sqrt(pow(md, 2.0) + pow(sdf_height, 2.0));
-
-	return final_dist;
+	return vec2(min_dist, type);
 }

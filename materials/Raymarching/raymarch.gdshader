@@ -18,17 +18,6 @@ void vertex() {
 
 	WORLD_POS = VERTEX;
 }
- 
-// Sample the SDF
-float distToNearestSurface(vec3 point){
-	return voronoi(point) * (0.1/scale);// > 0.1 ? 0.0 : 0.01;
-	
-	
-    //vec3 center = vec3(0.5, 0.5, -20.0);
-    //float radius = 2.0f;
-
-    //return length(center - point) - radius;
-}
 
 // Get ray direction going out of the screen
 vec3 getRayDir(vec2 uv_center) {
@@ -66,19 +55,23 @@ void fragment() {
 	bool hit = false;
 	float final_dist = 0.0;
 	
+	// x = dist, y = type
+	vec2 sdf_result;
+	
 	// Raymarching
 	for(int i = 0; i < ITER_COUNT; i++){
-        float dist = distToNearestSurface(rayOrigin);
+		vec2 sdf = voronoi(rayOrigin);
+		sdf_result = vec2(sdf.x * (1.0/scale), sdf.y);
 
-        rayOrigin += rayDir * dist;
-        if(dist < 0.05) {
+        rayOrigin += rayDir * sdf_result.x;
+        if(sdf_result.x < 0.01) {
 			hit = true;
             break;
         }
-		final_dist += dist;
+		final_dist += sdf_result.x;
     }
 	
-	if (hit) final_color = vec3(0.0, 0.01 * final_dist, 0.0);//voronoi(rayOrigin.xz).xyz;// 
+	if (hit) final_color = vec3(0.01 * final_dist * sdf_result.y, 0.01 * final_dist * (1.0 - sdf_result.y), 0.0);//voronoi(rayOrigin.xz).xyz;// 
 	ALBEDO = final_color;
 }
 
