@@ -15,6 +15,11 @@ varying vec3 WORLD_POS;
 
 varying flat vec3 obj_cam;
 
+// World colors
+uniform vec3 road_color = vec3(1.0, 0.0, 0.0);
+uniform vec3 fog_color = vec3(0.7, 0.2, 0.7);
+
+
 void vertex() {
 	CAM_POS = CAMERA_POSITION_WORLD;
 	CAM_DIR = -CAMERA_DIRECTION_WORLD;
@@ -74,19 +79,25 @@ void fragment() {
 		final_dist += sdf_result.x;
     }
 
-	if (hit) final_color = vec3(0.01 * final_dist * sdf_result.y, 0.01 * final_dist * (1.0 - sdf_result.y), 0.0);//voronoi(rayOrigin.xz).xyz;//
-	ALBEDO = final_color;
-	
+	//if (hit) final_color = vec3(0.01 * final_dist * sdf_result.y, 0.01 * final_dist * (1.0 - sdf_result.y), 0.0);//voronoi(rayOrigin.xz).xyz;//
+	//ALBEDO = final_color;
+
 	// Get final color
-	
+
 	vec3 building_color = building_shader(rayOrigin, CAM_POS);
-	
+
+	ALBEDO = fog_color;
 	if (hit) {
 		if (sdf_result.y == 1.0)
 			ALBEDO = building_color;
 		else
-			ALBEDO = vec3(1.0, 0.0, 0.0);
+			ALBEDO = road_color;
 	}
+
+	// Add fog based on distance
+	float fog_factor = 1.0 - exp(-0.01 * final_dist);
+	ALBEDO = mix(ALBEDO, fog_color, fog_factor);
+
 }
 
 //void light() {

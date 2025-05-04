@@ -43,25 +43,63 @@ mat2 rotate2D(float a) {
 }
 
 // Function to split tiles randomly
+// Returns a signed distance from the nearest road
 vec2 split_tile(vec2 uv, vec2 cell_id) {
     // Use cell_id as a seed for consistent randomness
     float rand_split = hash12(cell_id);
+	// Width of the roads
+	float road_width = 0.05;
+	
+	// Default values
+    float dist_to_road = 1.0;
+    float road_type = 0.0;
+	
+	// Initial road distance calculation (distance to cell borders)
+    float dist_to_border = min(
+        min(uv.x, 1.0 - uv.x),
+        min(uv.y, 1.0 - uv.y)
+    );
+	
+	// Update distance to include cell borders
+    dist_to_road = min(dist_to_road, dist_to_border);
 
-    // Randomly decide to split the tile
+    // Only apply subdivision if within the randomness threshold
     if (rand_split > 0.1 && rand_split < 0.9) {
         // Randomly choose split direction
         if (rand_split > 0.5) {
             // Vertical split
+            float split_pos = 0.5; // Position of the split
+            float dist_to_split = max(uv.x - split_pos, 0.0);
+            
+            // Update distance to nearest road
+            if (dist_to_split < dist_to_road) {
+                dist_to_road = dist_to_split;
+                road_type = 1.0; // Internal road
+            }
+            
+            // Apply the split for texture coordinates
             uv.x = fract(uv.x * rand_split * 2.0);
-			//d = 10.0 * clamp(exp(-2e1 * md), 0.0, 1.0) * layer2;
-        } else {
+		} else {
             // Horizontal split
-            uv.y = fract(uv.y * rand_split * 5.0);
-        }
-    }
-
-    return uv;
+            float split_pos = 0.5; // Position of the split
+            float dist_to_split = max(uv.y - split_pos, 0.0);
+            
+            // Update distance to nearest road
+            if (dist_to_split < dist_to_road) {
+                dist_to_road = dist_to_split;
+                road_type = 1.0; // Internal road
+            }
+			// Apply the split for texture coordinates
+	        uv.y = fract(uv.y * rand_split * 5.0);
+		}
+	}
+	// Calculate signed distance (negative inside roads, positive outside)
+    float signed_dist = dist_to_road - road_width;
+    
+    // Return both the signed distance and the road type
+    return vec2(signed_dist, road_type);
 }
+
 
 // Function to filter small areas
 // Calculate the number of connected components of the same color in O
@@ -118,13 +156,6 @@ vec2 voronoi(vec3 point){
         }
     }
 
-	// Colors each cell based on position and animation
-    O += mix(vec4(0.5, 0, (ia.y - iTime) / 2.0, 1.0) + 0.3,
-             vec4(0, 0.3, (ia.x - 0.0) * 0.3, 0) + 0.2,
-             hash12(ia)) * layer2;
-	// Set cell color to black
-	//O = vec4(0, 0, 0, 0);
-
 	// Searches for the nearest cell boundary
 	// Uses dot products to measure distances to edges
     md = 1e8;
@@ -138,52 +169,14 @@ vec2 voronoi(vec3 point){
         }
     }
 
-	// Adds strong borders between cells.
-	// Note: exp(-2e2 * md) changes size of cell boundry
-    d = 10.0 * clamp(exp(-10.0 * md), 0.0, 1.0) * layer2;
-	// Sharp boundary instead of glow (.1 for size)
-	//d = (md < 0.05 ? 2.0 : 0.0) * layer2;
-	// Adds striping effects within cells.
-    //d += 0.1 * clamp(exp(-2e2 * cos(80.0 * md)), 0.0, 1.0) * line;
-
 	// ---------- Building Grid Stuff ----------
-	float angle = hash12(ia) * 6.2831 + iTime * 0.001;
-
-	// Create a grid inside each cell
-	vec2 local_uv = vec2(u.x * 5.0, u.y * 5.0); // Controls grid density
-	local_uv = rotate2D(angle) * local_uv; // Rotate based on nucleus direction
-
-	// Draw grid
-	vec2 tile_uv = fract(local_uv);
-    vec2 tile_id = floor(local_uv);
-
-    // Apply random tile splitting
-    tile_uv = split_tile(tile_uv, tile_id);
-
-	float grid_lines = min(abs(tile_uv.x), abs(tile_uv.y)); // Distance to the nearest grid line
-	float grid_mask = step(grid_lines, 0.1); // Solid grid lines with thickness 0.03
-	// Set grid lines to solid white
-	vec3 grid_color = vec3(2.0) * grid_mask;
-
-	//d = mix(d, 2.0, grid_mask); // Apply the grid effect only where grid_mask is 1
-	//O.rgb = mix(O.rgb, grid_color, grid_mask); // Blend grid lines into output
-
-	// Calculate the minumum BBox of any area that is NOT white
-	// Filter out (fill with white) any small areas
-	//O = filter_small_components(O, point.xz);
-
-	// Applies contrast adjustments.
-    //O = max(O - contrast * d, 0.0) + d;
 	
-	
-    O = O;
 
 	// Thickness
 	float road_dist = max(md - 0.1, 0.0);
 	// Height
 	road_dist = sqrt(pow(road_dist, 2.0) + pow(sdf_height(-3.0, -5.0, point.y), 2.0));
 
-	
 	// Buildings
 	float rand_building_value = hash12(ia);
 	float building_dist = max((0.1 - md), 0.0);
