@@ -12,11 +12,20 @@ varying vec3 CAM_DIR;
 
 varying vec3 WORLD_POS;
 
+varying flat vec3 obj_cam;
+
 void vertex() {
 	CAM_POS = CAMERA_POSITION_WORLD;
 	CAM_DIR = -CAMERA_DIRECTION_WORLD;
 
 	WORLD_POS = VERTEX;
+	
+	
+	// For interior mapping
+	const float UV_SCALE = 0.5;
+	obj_cam = CAM_POS * UV_SCALE;//inverse(MODELVIEW_MATRIX)[3].xyz;
+	//obj_cam = (MODEL_MATRIX * vec4(obj_cam, 1.0)).xyz * UV_SCALE;
+	obj_cam *= vec3(1.0, -1.0, 1.0);
 }
 
 // Get ray direction going out of the screen
@@ -37,6 +46,26 @@ vec3 getRayDir(vec2 uv_center) {
 	);
 
 	return pitch * yaw * normalize(vec3(-uv_center, 1.0));
+}
+
+vec3 building_shader(vec3 rayOrigin) {
+	const float FLOOR_HEIGHT = 1.0;
+	
+	vec3 obj_vertex = rayOrigin.xyz * 0.5;//(MODEL_MATRIX * vec4(rayOrigin.xyz, 1.0)).xyz * 0.5;
+	obj_vertex *= vec3(1.0, -1.0, 1.0);
+	vec3 cam2pix = obj_vertex - obj_cam;
+	float ceiling_y;
+	float blue;
+	if (cam2pix.y > 0.0) {
+		ceiling_y = ceil(obj_vertex.y / FLOOR_HEIGHT) * FLOOR_HEIGHT;
+		blue = 0.0;
+	} else {
+		ceiling_y = (ceil(obj_vertex.y / FLOOR_HEIGHT) - 1.0) * FLOOR_HEIGHT;
+		blue = 1.0;
+	}
+	float t = (ceiling_y - obj_cam.y) / cam2pix.y;
+	vec2 interior_texcoord = obj_cam.xz + t * cam2pix.xz;
+	return vec3(fract(interior_texcoord), blue);
 }
 
 void fragment() {
@@ -73,6 +102,17 @@ void fragment() {
 
 	if (hit) final_color = vec3(0.01 * final_dist * sdf_result.y, 0.01 * final_dist * (1.0 - sdf_result.y), 0.0);//voronoi(rayOrigin.xz).xyz;//
 	ALBEDO = final_color;
+	
+	// Get final color
+	
+	vec3 building_color = building_shader(rayOrigin);
+	
+	if (hit) {
+		if (sdf_result.y == 1.0)
+			ALBEDO = building_color;
+		else
+			ALBEDO = vec3(1.0, 0.0, 0.0);
+	}
 }
 
 //void light() {
