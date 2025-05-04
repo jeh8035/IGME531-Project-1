@@ -1,9 +1,9 @@
 [gd_scene load_steps=10 format=3 uid="uid://b3585kfpqb5tk"]
 
 [ext_resource type="Script" uid="uid://dy1dnxh8hs5aq" path="res://addons/freecam_3D/freecam.gd" id="2_ly6js"]
-[ext_resource type="Texture2D" uid="uid://ce6q3v4rdkup0" path="res://materials/Buildings/uv.png" id="3_1bvp3"]
 [ext_resource type="Shader" uid="uid://0ckpuo3edenv" path="res://materials/Raymarching/test_sdf.gdshader" id="3_h2yge"]
 [ext_resource type="CompressedTexture2DArray" uid="uid://dtt6kw0e2l5yl" path="res://materials/room_textures.png" id="3_lquwl"]
+[ext_resource type="Texture2D" uid="uid://dt2uel4udv8s0" path="res://materials/room_outer.png" id="4_7mycd"]
 [ext_resource type="Shader" uid="uid://cr2x1mes4i3ix" path="res://materials/Raymarching/raymarch.gdshader" id="7_272bh"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_272bh"]
@@ -21,8 +21,8 @@ shader_parameter/contrast = 0.0
 shader_parameter/line = 0.0
 shader_parameter/layer1 = 0.0
 shader_parameter/layer2 = 1.0
-shader_parameter/uv_texture = ExtResource("3_1bvp3")
 shader_parameter/room_albedo = ExtResource("3_lquwl")
+shader_parameter/room_exterior_albedo = ExtResource("4_7mycd")
 shader_parameter/road_color = Vector3(0, 1, 0)
 shader_parameter/fog_color = Vector3(0.5, 0.6, 0.7)
 

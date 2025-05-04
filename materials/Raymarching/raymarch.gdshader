@@ -58,18 +58,16 @@ void fragment() {
 	vec3 rayOrigin = CAM_POS;
 	vec3 rayDir = getRayDir(uv_center);
 
-	vec3 final_color = vec3(0.0, 0.0, 0.0);
-
 	bool hit = false;
 	float final_dist = 0.0;
 
 	// x = dist, y = type
-	vec2 sdf_result;
+	vec3 sdf_result;
 
 	// Raymarching
 	for(int i = 0; i < ITER_COUNT; i++){
-		vec2 sdf = voronoi(rayOrigin);
-		sdf_result = vec2(sdf.x * (0.05/scale), sdf.y);
+		sdf_result = voronoi(rayOrigin);
+		sdf_result.x *= (0.05/scale);
 
         rayOrigin += rayDir * sdf_result.x;
         if(sdf_result.x < 0.01) {
@@ -80,8 +78,8 @@ void fragment() {
     }
 
 	// Get final color
-	vec3 building_color = building_shader(rayOrigin, CAM_POS);
-
+	vec3 building_color = building_shader(rayOrigin, CAM_POS, sdf_result.z);
+	
 	vec3 hit_color =  mix(building_color, road_color, step(sdf_result.y, 0.0));
 	ALBEDO = hit ? hit_color : fog_color;
 

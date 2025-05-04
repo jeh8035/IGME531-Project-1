@@ -123,8 +123,8 @@ float sdf_height(float top, float bottom, float height) {
 						float(height < bottom) * abs(height - bottom);
 }
 
-// Returns: x = dist, y = type
-vec2 voronoi(vec3 point){
+// Returns: x = dist, y = type, z = building id
+vec3 voronoi(vec3 point){
 	vec4 O = color; // Base color output
 
     // Use UVs instead of SCREEN_UV to work in 3D
@@ -207,12 +207,12 @@ vec2 voronoi(vec3 point){
 	float rand_chunk_value = hash12(ia);
 	float building_dist = max((0.01 - road_dist), 0.0);
 	// Height
-	float building_height = max(building_id * 80.0, 10.0);
+	float building_height = max((rand_chunk_value * 80.0) + (building_id * 20.0 - 10.0), 10.0);
 	building_dist = sqrt(pow(building_dist, 2.0) + pow(sdf_height(building_height, -5.0, point.y), 2.0));
 	road_dist = sqrt(pow(road_dist, 2.0) + pow(sdf_height(-3.0, -5.0, point.y), 2.0));
 	
 	float min_dist = min(building_dist, road_dist);
 	float type = building_dist < road_dist ? 1.0 : 0.0;
 
-	return vec2(min_dist, type); 
+	return vec3(min_dist, type, building_id); 
 }
