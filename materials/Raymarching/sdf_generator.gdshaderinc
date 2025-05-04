@@ -2,7 +2,7 @@
 uniform vec4 color = vec4(0.0,0.0,0.0,1.0); // Base color of the shader
 const float scale = .001; // Scaling factor for the pattern
 uniform vec2 disp = vec2(0.0, 0.0); // Displacement of the texture
-uniform float speed : hint_range(0.0, 5.0, 0.1) = 1; // Controls animation speed
+uniform float speed : hint_range(0.0, 2.0, 0.01) = 1; // Controls animation speed
 uniform float nucleus = 1.0; // Strength of cell nucleus highlights
 uniform float contrast : hint_range(0.0, 5.0, 0.1) = 0.5; // Adjusts contrast
 uniform float line : hint_range(0.0, 5.0, 0.1) = 1.0; // Strength of lines in cells
@@ -43,8 +43,9 @@ mat2 rotate2D(float a) {
 }
 
 // Function to split tiles randomly
-// Returns a signed distance from the nearest road
-vec2 split_tile(vec2 uv, vec2 cell_id) {
+// Returns: x = dist to nearest road, y = road type
+// 			z = building id (for each chunk)
+vec3 split_tile(vec2 uv, vec2 cell_id) {
     // Use cell_id as a seed for consistent randomness
     float rand_split = hash12(cell_id);
 	// Width of the roads
@@ -53,6 +54,10 @@ vec2 split_tile(vec2 uv, vec2 cell_id) {
 	// Default values
     float dist_to_road = 1.0;
     float road_type = 0.0;
+	float building_id = 0.0;
+	
+	// Track quadrant for building ID
+    int quadrant = 0;
 	
 	// Initial road distance calculation (distance to cell borders)
     float dist_to_border = min(
@@ -76,6 +81,9 @@ vec2 split_tile(vec2 uv, vec2 cell_id) {
                 dist_to_road = dist_to_split;
                 road_type = 1.0; // Internal road
             }
+			
+			// Determine quadrant (left or right of split)
+            quadrant = (uv.x < split_pos) ? 0 : 1;
             
             // Apply the split for texture coordinates
             uv.x = fract(uv.x * rand_split * 2.0);
@@ -89,15 +97,24 @@ vec2 split_tile(vec2 uv, vec2 cell_id) {
                 dist_to_road = dist_to_split;
                 road_type = 1.0; // Internal road
             }
+			
+			// Determine quadrant (top or bottom of split)
+            quadrant = (uv.y < split_pos) ? 0 : 2;
+			
 			// Apply the split for texture coordinates
 	        uv.y = fract(uv.y * rand_split * 5.0);
 		}
 	}
+	
+	// Calculate building ID based on cell_id and quadrant
+    // This creates a unique ID for each building within the chunk
+    building_id = hash12(cell_id + vec2(float(quadrant), rand_split));
+	
 	// Calculate signed distance (negative inside roads, positive outside)
     float signed_dist = dist_to_road - road_width;
     
     // Return both the signed distance and the road type
-    return vec2(signed_dist, road_type);
+    return vec3(signed_dist, road_type, building_id);
 }
 
 // Calculates an SDF based on a height
@@ -154,7 +171,7 @@ vec2 voronoi(vec3 point){
     }
 
 	// ---------- Building Grid Stuff ----------
-	float angle = hash12(ia) * 6.2831 + iTime * 0.001;
+	float angle = hash12(ia) * 6.2831;
 
 	// Create a grid inside each cell
 	vec2 local_uv = vec2(u.x * 5.0, u.y * 5.0); // Controls grid density
@@ -166,9 +183,10 @@ vec2 voronoi(vec3 point){
 
     // Apply random tile splitting
     // Get road SDF and type from split_tile
-	vec2 road_data = split_tile(tile_uv, tile_id);
+	vec3 road_data = split_tile(tile_uv, tile_id);
 	float road_dist = road_data.x;
 	float road_type = road_data.y;
+	float building_id = road_data.z;
 	
 	if (road_dist < 0.0) {
 	    // Inside a road
@@ -186,10 +204,11 @@ vec2 voronoi(vec3 point){
 	road_dist = min(max(md - 0.01, 0.0), max(road_dist - 0.01, 0.0));
 
 	// Buildings
-	float rand_building_value = hash12(ia);
+	float rand_chunk_value = hash12(ia);
 	float building_dist = max((0.01 - road_dist), 0.0);
 	// Height
-	building_dist = sqrt(pow(building_dist, 2.0) + pow(sdf_height(rand_building_value * 50.0, -5.0, point.y), 2.0));
+	float building_height = max(building_id * 80.0, 10.0);
+	building_dist = sqrt(pow(building_dist, 2.0) + pow(sdf_height(building_height, -5.0, point.y), 2.0));
 	road_dist = sqrt(pow(road_dist, 2.0) + pow(sdf_height(-3.0, -5.0, point.y), 2.0));
 	
 	float min_dist = min(building_dist, road_dist);

@@ -1,6 +1,6 @@
 shader_type spatial;
 
-const int ITER_COUNT = 50;
+const int ITER_COUNT = 200;
 
 uniform float ASPECT_RATIO;
 

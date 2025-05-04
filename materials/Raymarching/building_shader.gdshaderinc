@@ -71,7 +71,7 @@ vec3 building_shader(vec3 rayOrigin, vec3 cameraPos) {
 			tex_coord = vec3(obj_cam.xy + front_wall_t * cam2pix.xy, 2.0);
 		} else {
 			// Side wall
-			tex_coord = vec3(obj_cam.zy + side_wall_t * cam2pix.zy, 0.0);
+			tex_coord = vec3(obj_cam.zy + side_wall_t * cam2pix.zy, 2.0);
 		}
 	}
 	//vec2 exterior_uv = vec2(obj_vertex.x + obj_vertex.z, obj_vertex.y);

@@ -1,6 +1,6 @@
 shader_type spatial;
 
-const int ITER_COUNT = 100;
+const int ITER_COUNT = 500;
 
 uniform float ASPECT_RATIO;
 
@@ -69,7 +69,7 @@ void fragment() {
 	// Raymarching
 	for(int i = 0; i < ITER_COUNT; i++){
 		vec2 sdf = voronoi(rayOrigin);
-		sdf_result = vec2(sdf.x * (0.25/scale), sdf.y);
+		sdf_result = vec2(sdf.x * (0.05/scale), sdf.y);
 
         rayOrigin += rayDir * sdf_result.x;
         if(sdf_result.x < 0.01) {
