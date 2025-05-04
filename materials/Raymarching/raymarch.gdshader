@@ -79,28 +79,14 @@ void fragment() {
 		final_dist += sdf_result.x;
     }
 
-	//if (hit) final_color = vec3(0.01 * final_dist * sdf_result.y, 0.01 * final_dist * (1.0 - sdf_result.y), 0.0);//voronoi(rayOrigin.xz).xyz;//
-	//ALBEDO = final_color;
-
 	// Get final color
-
 	vec3 building_color = building_shader(rayOrigin, CAM_POS);
 
-	ALBEDO = fog_color;
-	if (hit) {
-		if (sdf_result.y == 1.0)
-			ALBEDO = building_color;
-		else
-			ALBEDO = road_color;
-	}
+	vec3 hit_color =  mix(building_color, road_color, step(sdf_result.y, 0.0));
+	ALBEDO = hit ? hit_color : fog_color;
 
 	// Add fog based on distance
 	float fog_factor = 1.0 - exp(-0.01 * final_dist);
 	ALBEDO = mix(ALBEDO, fog_color, fog_factor);
 
 }
-
-//void light() {
-//	// Called for every pixel for every light affecting the material.
-//	// Uncomment to replace the default light processing function with this one.
-//}

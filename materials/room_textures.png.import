@@ -1,0 +1,26 @@
+[remap]
+
+importer="2d_array_texture"
+type="CompressedTexture2DArray"
+uid="uid://dtt6kw0e2l5yl"
+path="res://.godot/imported/room_textures.png-1a2092c525489e06f22f12f97976faff.ctexarray"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://materials/room_textures.png"
+dest_files=["res://.godot/imported/room_textures.png-1a2092c525489e06f22f12f97976faff.ctexarray"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/channel_pack=0
+mipmaps/generate=false
+mipmaps/limit=-1
+slices/horizontal=1
+slices/vertical=3

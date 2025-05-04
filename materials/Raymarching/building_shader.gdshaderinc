@@ -1,5 +1,9 @@
 uniform sampler2D uv_texture : source_color, filter_nearest, repeat_enable;
 
+// ceiling, floor, wall albedo
+uniform sampler2DArray room_albedo;
+//uniform sampler2D room_exterior_albedo;
+
 vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
 	vec4 samp = vec4(0.0);
 	samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;
@@ -25,33 +29,56 @@ float random1_alt(float seed) {
 	return random2(vec2(seed, -seed));
 }
 
+const float room_scale = 2.0;
+
 vec3 building_shader(vec3 rayOrigin, vec3 cameraPos) {
 	const float FLOOR_HEIGHT = 1.0;
+	const float ROOM_SIZE = 1.0;
 	
 	vec3 final_color = vec3(0.0);
 	
 	// Interior mapping
-	
-	vec3 obj_vertex = rayOrigin.xyz * 0.5;//(MODEL_MATRIX * vec4(rayOrigin.xyz, 1.0)).xyz * 0.5;
+	vec3 obj_vertex = rayOrigin.xyz * room_scale;//(MODEL_MATRIX * vec4(rayOrigin.xyz, 1.0)).xyz * 0.5;
 	obj_vertex *= vec3(1.0, -1.0, 1.0);
-	vec3 obj_cam = (cameraPos * 0.5 * vec3(1.0, -1.0, 1.0));
+	vec3 obj_cam = (cameraPos * room_scale * vec3(1.0, -1.0, 1.0));
 	vec3 cam2pix = obj_vertex - obj_cam;
-	float ceiling_y;
-	float blue;
-	if (cam2pix.y > 0.0) {
-		ceiling_y = ceil(obj_vertex.y / FLOOR_HEIGHT) * FLOOR_HEIGHT;
-		blue = 0.0;
-	} else {
-		ceiling_y = (ceil(obj_vertex.y / FLOOR_HEIGHT) - 1.0) * FLOOR_HEIGHT;
-		blue = 1.0;
-	}
-	float t = (ceiling_y - obj_cam.y) / cam2pix.y;
-	vec2 interior_texcoord = obj_cam.xz + t * cam2pix.xz;
 	
-	final_color += vec3(fract(interior_texcoord), blue);
+	float is_floor = step(cam2pix.y, 0.0);
+	float ceiling_y = ceil(obj_vertex.y / FLOOR_HEIGHT - is_floor) * FLOOR_HEIGHT;
+	float ceiling_t = (ceiling_y - obj_cam.y) / cam2pix.y;
+	
+	float is_north = step(cam2pix.z, 0.0);
+	float front_wall_z = ceil(obj_vertex.z / ROOM_SIZE - is_north) * ROOM_SIZE;
+	float front_wall_t = (front_wall_z - obj_cam.z) / cam2pix.z;
+	
+	float is_east = step(cam2pix.x, 0.0);
+	float side_wall_x = ceil(obj_vertex.x / ROOM_SIZE - is_east) * ROOM_SIZE;
+	float side_wall_t = (side_wall_x - obj_cam.x) / cam2pix.x;
+	
+	vec3 tex_coord;
+	if (ceiling_t < side_wall_t) {
+		if (ceiling_t < front_wall_t) {
+			// Ceiling
+			tex_coord = vec3(obj_cam.xz + ceiling_t * cam2pix.xz, is_floor);
+		}
+		else {
+			// Front/back wall
+			tex_coord = vec3(obj_cam.xy + front_wall_t * cam2pix.xy, 2.0);
+		}
+	} else {
+		if (front_wall_t < side_wall_t) {
+			// Front/back wall
+			tex_coord = vec3(obj_cam.xy + front_wall_t * cam2pix.xy, 2.0);
+		} else {
+			// Side wall
+			tex_coord = vec3(obj_cam.zy + side_wall_t * cam2pix.zy, 0.0);
+		}
+	}
+	//vec2 exterior_uv = vec2(obj_vertex.x + obj_vertex.z, obj_vertex.y);
+	//vec4 exterior = texture(room_exterior_albedo, exterior_uv);
+	final_color = texture(room_albedo, tex_coord).rgb;//mix(interior_texture, exterior.rgb, exterior.a);
 	
 	// Window lights
-	
 	vec3 uv1_power_normal = pow( normalize(vec3(1.0, 1.0, 1.0)), vec3(1.0));
 	uv1_power_normal /= dot(uv1_power_normal, vec3(1.0));
 	
