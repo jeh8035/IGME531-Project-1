@@ -1,6 +1,6 @@
 
 uniform vec4 color = vec4(0.0,0.0,0.0,1.0); // Base color of the shader
-uniform float scale : hint_range(0.001, 1.0, 0.01) = .01; // Scaling factor for the pattern
+const float scale = .001; // Scaling factor for the pattern
 uniform vec2 disp = vec2(0.0, 0.0); // Displacement of the texture
 uniform float speed : hint_range(0.0, 5.0, 0.1) = 1; // Controls animation speed
 uniform float nucleus = 1.0; // Strength of cell nucleus highlights
@@ -69,7 +69,7 @@ vec2 split_tile(vec2 uv, vec2 cell_id) {
         if (rand_split > 0.5) {
             // Vertical split
             float split_pos = 0.5; // Position of the split
-            float dist_to_split = max(uv.x - split_pos, 0.0);
+            float dist_to_split = abs(uv.x - split_pos);
             
             // Update distance to nearest road
             if (dist_to_split < dist_to_road) {
@@ -82,7 +82,7 @@ vec2 split_tile(vec2 uv, vec2 cell_id) {
 		} else {
             // Horizontal split
             float split_pos = 0.5; // Position of the split
-            float dist_to_split = max(uv.y - split_pos, 0.0);
+            float dist_to_split = abs(uv.y - split_pos);
             
             // Update distance to nearest road
             if (dist_to_split < dist_to_road) {
@@ -100,20 +100,11 @@ vec2 split_tile(vec2 uv, vec2 cell_id) {
     return vec2(signed_dist, road_type);
 }
 
-
-// Function to filter small areas
-// Calculate the number of connected components of the same color in O
-// Filter out (fill with white) any small areas
-vec4 filter_small_components(vec4 O, vec2 uv) {
-    return O;
-}
-
 // Calculates an SDF based on a height
 float sdf_height(float top, float bottom, float height) {
 	return scale * float(height > top) * abs(height - top) +
 						float(height < bottom) * abs(height - bottom);
 }
-
 
 // Returns: x = dist, y = type
 vec2 voronoi(vec3 point){
@@ -192,8 +183,7 @@ vec2 voronoi(vec3 point){
 
 
 	// Thickness
-	road_dist *= max(md - 0.01, 0.0);
-	// Height
+	road_dist = min(max(md - 0.01, 0.0), max(road_dist - 0.01, 0.0));
 
 	// Buildings
 	float rand_building_value = hash12(ia);
