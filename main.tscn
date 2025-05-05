@@ -23,8 +23,6 @@ shader_parameter/layer1 = 0.0
 shader_parameter/layer2 = 1.0
 shader_parameter/room_albedo = ExtResource("3_lquwl")
 shader_parameter/room_exterior_albedo = ExtResource("4_7mycd")
-shader_parameter/road_color = Vector3(0, 1, 0)
-shader_parameter/fog_color = Vector3(0.5, 0.6, 0.7)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0xm2m"]
 size = Vector2(1000, 10000)
@@ -59,6 +57,7 @@ surface_material_override/0 = SubResource("ShaderMaterial_5vw27")
 
 [node name="Render Screen2" type="MeshInstance3D" parent="Freecam3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 4.37114e-08, 0, -4.37114e-08, 1, 0, 0, 0)
+visible = false
 gi_mode = 0
 mesh = SubResource("PlaneMesh_0xm2m")
 surface_material_override/0 = SubResource("ShaderMaterial_1bvp3")

@@ -109,7 +109,7 @@ vec3 split_tile(vec2 uv, vec2 cell_id) {
 	// Calculate building ID based on cell_id and quadrant
     // This creates a unique ID for each building within the chunk
     building_id = hash12(cell_id + vec2(float(quadrant), rand_split));
-	
+
 	// Calculate signed distance (negative inside roads, positive outside)
     float signed_dist = dist_to_road - road_width;
     
@@ -189,16 +189,8 @@ vec3 voronoi(vec3 point){
 	float building_id = road_data.z;
 	
 	if (road_dist < 0.0) {
-	    // Inside a road
-	    if (road_type < 0.5) {
-	        // Main road
-	        O = vec4(1.0, 0.0, 0.0, 1.0);
-	    } else {
-	        // Internal road
-	        O = vec4(0.0, 0.0, 1.0, 1.0);
-		}
+        O = vec4(0.0);
     }
-
 
 	// Thickness
 	road_dist = min(max(md - 0.01, 0.0), max(road_dist - 0.01, 0.0));
@@ -206,13 +198,27 @@ vec3 voronoi(vec3 point){
 	// Buildings
 	float rand_chunk_value = hash12(ia);
 	float building_dist = max((0.01 - road_dist), 0.0);
+
 	// Height
-	float building_height = max((rand_chunk_value * 80.0) + (building_id * 20.0 - 10.0), 10.0);
-	building_dist = sqrt(pow(building_dist, 2.0) + pow(sdf_height(building_height, -5.0, point.y), 2.0));
-	road_dist = sqrt(pow(road_dist, 2.0) + pow(sdf_height(-3.0, -5.0, point.y), 2.0));
+	float building_height = clamp((rand_chunk_value * 80.0) + (building_id * 20.0), 10.0, 100.0);
+	building_dist = sqrt(pow(building_dist, 2.0) + pow(sdf_height(building_height, 0.0, point.y), 2.0));
+	road_dist = sqrt(pow(road_dist, 2.0) + pow(sdf_height(0.0, -1.0, point.y), 2.0));
 	
-	float min_dist = min(building_dist, road_dist);
-	float type = building_dist < road_dist ? 1.0 : 0.0;
+	float min_dist;
+	float type;
+
+	// Check if we hit building before road
+	if (building_dist < road_dist) {
+		float roof_epsilon = 0.1; // Lower to remove roof
+		float roof_sdf = abs(point.y - building_height);
+		bool is_roof = roof_sdf < roof_epsilon;
+
+		type = is_roof ? 2.0 : 1.0; // 2.0 = roof, 1.0 = wall
+		min_dist = building_dist;
+	} else {
+		type = 0.0; // road/ground
+		min_dist = road_dist;
+	}
 
 	return vec3(min_dist, type, building_id); 
 }
