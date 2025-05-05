@@ -2,21 +2,9 @@
 uniform sampler2DArray room_albedo;
 uniform sampler2D room_exterior_albedo;
 
-vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
-	vec4 samp = vec4(0.0);
-	samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;
-	samp += texture(p_sampler, p_triplanar_pos.xz) * p_weights.y;
-	samp += texture(p_sampler, p_triplanar_pos.zy * vec2(-1.0, 1.0)) * p_weights.x;
-	return samp;
-}
-
 float random3(vec3 uv) {
     return fract(sin(dot(uv.xyz,
         vec3(12.9898,78.233,41.2512))) * 43758.5453123);
-}
-
-float random2(vec2 uv) {
-	return fract(sin(dot(uv, vec2(12.9898,78.233))) * 43758.5453123);
 }
 
 const float room_scale = 1.0;
@@ -81,8 +69,11 @@ vec3 building_shader(vec3 rayOrigin, vec3 cameraPos, float building_hash) {
 	// Exterior texture (randomly select)
 	exterior_uv.x = mod(exterior_uv.x / 3.0, 1.0/3.0);
 	exterior_uv.x += floor(building_hash * 3.0) / 3.0;
-
 	vec4 exterior = texture(room_exterior_albedo, exterior_uv);
+	
+	// Random lighting
 	vec3 interior = texture(room_albedo, tex_coord).rgb;
+	interior = min(interior * random_window_val * 2.0, vec3(1.0));
+	
 	return mix(interior, exterior.rgb, exterior.a);
 }

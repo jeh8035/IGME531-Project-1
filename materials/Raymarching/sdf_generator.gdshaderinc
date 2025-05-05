@@ -1,13 +1,6 @@
-
-uniform vec4 color = vec4(0.0,0.0,0.0,1.0); // Base color of the shader
 const float scale = .001; // Scaling factor for the pattern
 uniform vec2 disp = vec2(0.0, 0.0); // Displacement of the texture
 uniform float speed : hint_range(0.0, 2.0, 0.01) = 1; // Controls animation speed
-uniform float nucleus = 1.0; // Strength of cell nucleus highlights
-uniform float contrast : hint_range(0.0, 5.0, 0.1) = 0.5; // Adjusts contrast
-uniform float line : hint_range(0.0, 5.0, 0.1) = 1.0; // Strength of lines in cells
-uniform float layer1 : hint_range(0.0, 5.0, 0.1) = 1.0; // Influence of first layer of shading
-uniform float layer2 : hint_range(0.0, 2.0, 0.1) = 1.0; // Influence of secondary shading
 
 
 // Macros
@@ -125,22 +118,15 @@ float sdf_height(float top, float bottom, float height) {
 
 // Returns: x = dist, y = type, z = building id
 vec3 voronoi(vec3 point){
-	vec4 O = color; // Base color output
 
     // Use UVs instead of SCREEN_UV to work in 3D
     vec2 U = (point.xz - disp) * scale; // Adjusted UV coordinates, scaled and displaced.
-    float ratio = 1.0; // Assuming square UV mapping
 
     vec2 R = vec2(1.0); // Normalized resolution
     vec2 u = 3.0 * (U + U - R) / R.y + vec2(0, iTime); // Adjusted coordinate space
 
     vec2 p = u; // Position of the current fragment
 	vec2 ip = round(p); // Rounded integer cell position
-	vec2 fp = p - ip; // Fractional part (offset inside the cell)
-	vec2 ct = cell(ip); // The computed cell nucleus position.
-
-    O.x += exp(-30.0 * length(fp - ct)) * nucleus; // Highlights the cell nucleus.
-    O += 0.2 * exp(-99.0 * abs(length(fp) - rcel(ip))) * layer1; // Adds a glowing effect around the cell.
 
 	// Iterates over neighboring cells to find the nearest nucleus.
     vec2 a, ia;
@@ -185,12 +171,7 @@ vec3 voronoi(vec3 point){
     // Get road SDF and type from split_tile
 	vec3 road_data = split_tile(tile_uv, tile_id);
 	float road_dist = road_data.x;
-	float road_type = road_data.y;
 	float building_id = road_data.z;
-	
-	if (road_dist < 0.0) {
-        O = vec4(0.0);
-    }
 
 	// Thickness
 	road_dist = min(max(md - 0.01, 0.0), max(road_dist - 0.01, 0.0));

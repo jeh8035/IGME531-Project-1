@@ -2,24 +2,24 @@ shader_type spatial;
 
 const int ITER_COUNT = 700;
 
-uniform float ASPECT_RATIO;
 
 #include "sdf_generator.gdshaderinc"
 #include "building_shader.gdshaderinc"
 
 
+uniform float ASPECT_RATIO;
+// World colors
+uniform vec3 road_color = vec3(0.3, 0.3, 0.3); // Dark Gray
+uniform vec3 fog_color = vec3(0.46, 0.63, 0.77); // Light blue //vec3(0.0, 0.0, 0.0); // Black
+uniform vec3 sidewalk_color = vec3(0.83, 0.74, 0.56); // Cream
+uniform vec3 roof_color = vec3(0.75, 0.74, 0.73); // Light gray
+
 varying vec3 CAM_POS;
 varying vec3 CAM_DIR;
-
-varying vec3 WORLD_POS;
-
-varying flat vec3 obj_cam;
 
 void vertex() {
 	CAM_POS = CAMERA_POSITION_WORLD;
 	CAM_DIR = -CAMERA_DIRECTION_WORLD;
-
-	WORLD_POS = VERTEX;
 }
 
 // Get ray direction going out of the screen
@@ -80,7 +80,7 @@ void fragment() {
 		float min_dist = min(dist_to_plane, sdf_result.x);
 
 		// If closest is the ground plane, mark it
-        if (min_dist == dist_to_plane && dist_to_plane < 0.01) {
+        if (min_dist <= dist_to_plane && dist_to_plane < 0.01) {
             hit = true;
             hit_ground = true;
             break;
@@ -94,24 +94,18 @@ void fragment() {
 		final_dist += sdf_result.x;
     }
 
-	// World colors
-	vec3 road_color = vec3(0.3, 0.3, 0.3); // Dark Gray
-	vec3 fog_color = vec3(0.46, 0.63, 0.77) * 10.0; // Light blue //vec3(0.0, 0.0, 0.0); // Black
-	vec3 sidewalk_color = vec3(0.83, 0.74, 0.56); // Cream
-	vec3 roof_color = vec3(0.75, 0.74, 0.73); // Light gray
-
 	vec3 hit_color = fog_color; // Default to sky/fog color
 
 	if (hit) {
-		if(sdf_result.y == 0.0){
+		if(sdf_result.y <= 0.0){
 			hit_color = road_color;
 		} else if (hit_ground == true) {
 			hit_color = sidewalk_color;
-		} else if(sdf_result.y == 2.0) {
+		}else if(sdf_result.y <= 1.0){
+			hit_color = building_shader(rayOrigin, CAM_POS, sdf_result.z);
+		} else if(sdf_result.y <= 2.0) {
 			// Offset slightly by id
-			hit_color = roof_color * sdf_result.z * 2.0;
-		} else if(sdf_result.y == 1.0){
-			hit_color = building_shader(rayOrigin, CAM_POS, sdf_result.z) * 2.0;
+			hit_color = roof_color * sdf_result.z ;
 		}
 
 		// Add fog based on distance
@@ -120,5 +114,6 @@ void fragment() {
 	} else {
 		ALBEDO = fog_color;
 	}
+
 
 }

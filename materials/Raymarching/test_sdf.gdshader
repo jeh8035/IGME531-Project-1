@@ -1,9 +1,5 @@
 shader_type spatial;
 
-const int ITER_COUNT = 200;
-
-uniform float ASPECT_RATIO;
-
 #include "sdf_generator.gdshaderinc"
 
 varying vec3 WORLD_POS;

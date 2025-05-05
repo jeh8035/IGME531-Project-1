@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://b3585kfpqb5tk"]
+[gd_scene load_steps=11 format=3 uid="uid://b3585kfpqb5tk"]
 
 [ext_resource type="Script" uid="uid://dy1dnxh8hs5aq" path="res://addons/freecam_3D/freecam.gd" id="2_ly6js"]
 [ext_resource type="Shader" uid="uid://0ckpuo3edenv" path="res://materials/Raymarching/test_sdf.gdshader" id="3_h2yge"]
@@ -6,23 +6,26 @@
 [ext_resource type="Texture2D" uid="uid://dt2uel4udv8s0" path="res://materials/room_outer.png" id="4_7mycd"]
 [ext_resource type="Shader" uid="uid://cr2x1mes4i3ix" path="res://materials/Raymarching/raymarch.gdshader" id="7_272bh"]
 
+[sub_resource type="Environment" id="Environment_lquwl"]
+background_color = Color(1, 1, 1, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+
 [sub_resource type="PlaneMesh" id="PlaneMesh_272bh"]
 size = Vector2(1.778, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5vw27"]
 render_priority = 0
 shader = ExtResource("7_272bh")
-shader_parameter/ASPECT_RATIO = 1.778
-shader_parameter/color = Vector4(0, 0, 0, 1)
 shader_parameter/disp = Vector2(0, 0)
 shader_parameter/speed = 0.0
-shader_parameter/nucleus = 0.0
-shader_parameter/contrast = 0.0
-shader_parameter/line = 0.0
-shader_parameter/layer1 = 0.0
-shader_parameter/layer2 = 1.0
 shader_parameter/room_albedo = ExtResource("3_lquwl")
 shader_parameter/room_exterior_albedo = ExtResource("4_7mycd")
+shader_parameter/ASPECT_RATIO = 1.778
+shader_parameter/road_color = Vector3(0.3, 0.3, 0.3)
+shader_parameter/fog_color = Vector3(0.46, 0.63, 0.77)
+shader_parameter/sidewalk_color = Vector3(0.83, 0.74, 0.56)
+shader_parameter/roof_color = Vector3(0.75, 0.74, 0.73)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0xm2m"]
 size = Vector2(1000, 10000)
@@ -30,17 +33,13 @@ size = Vector2(1000, 10000)
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1bvp3"]
 render_priority = 0
 shader = ExtResource("3_h2yge")
-shader_parameter/ASPECT_RATIO = 1.778
-shader_parameter/color = Vector4(0, 0, 0, 1)
 shader_parameter/disp = Vector2(0, 0)
 shader_parameter/speed = 0.0
-shader_parameter/nucleus = 0.0
-shader_parameter/contrast = 0.0
-shader_parameter/line = 0.0
-shader_parameter/layer1 = 0.0
-shader_parameter/layer2 = 1.0
 
 [node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_lquwl")
 
 [node name="Freecam3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
@@ -51,6 +50,7 @@ target_speed = 1.0
 
 [node name="Render Screen" type="MeshInstance3D" parent="Freecam3D"]
 transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -1)
+cast_shadow = 0
 gi_mode = 0
 mesh = SubResource("PlaneMesh_272bh")
 surface_material_override/0 = SubResource("ShaderMaterial_5vw27")
